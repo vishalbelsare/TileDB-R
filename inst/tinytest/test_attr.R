@@ -3,7 +3,7 @@ library(tiledb)
 
 ctx <- tiledb_ctx(limitTileDBCores())
 
-isOldWindows <- Sys.info()[["sysname"]] == "Windows" && grepl('Windows Server 2008', osVersion)
+isWindows <- Sys.info()[["sysname"]] == "Windows"
 
 #test_that("tiledb_attr constructor works", {
 a1 <- tiledb_attr(type = "FLOAT64")
@@ -53,8 +53,6 @@ expect_true(is.na(tiledb::cell_val_num(attrs)))
 #})
 
 #test_that("tiledb_attr set fill", {
-if (tiledb_version(TRUE) < "2.1.0") exit_file("Needs TileDB 2.1.* or later")
-if (isOldWindows) exit_file("skip remainder of this file on old Windows releases")
 
 ## test for default
 dom <- tiledb_domain(dims = tiledb_dim("rows", c(1L, 4L), 4L, "INT32"))
@@ -65,12 +63,12 @@ uri <- tempfile()
 if (dir.exists(uri)) unlink(uri, recursive=TRUE)
 tiledb_array_create(uri, sch)
 
-arr <- tiledb_dense(uri)
-val <- arr[]
+#arr <- tiledb_dense(uri)
+#val <- arr[]
 ## when no value has been set, expect NA
 ##expect_equal(val, array(rep(NA, 4)))
-expect_true(length(val) == 4)
-expect_true(all(is.na(val)))
+#expect_true(length(val) == 4)
+#expect_true(all(is.na(val)))
 
 ## test for value set
 dom <- tiledb_domain(dims = tiledb_dim("rows", c(1L, 4L), 4L, "INT32"))
@@ -80,11 +78,11 @@ sch <- tiledb_array_schema(dom, attr)
 uri <- tempfile()
 if (dir.exists(uri)) unlink(uri, recursive=TRUE)
 tiledb_array_create(uri, sch)
-arr <- tiledb_dense(uri)
-val <- arr[]
+#arr <- tiledb_dense(uri)
+#val <- arr[]
 ## when fill value has been set, expect value
-expect_equal(val, array(rep(42, 4)))
-expect_equal(tiledb_attribute_get_fill_value(attr), 42)
+#expect_equal(val, array(rep(42, 4)))
+#expect_equal(tiledb_attribute_get_fill_value(attr), 42)
 
 dom <- tiledb_domain(dims = tiledb_dim("rows", c(1L, 4L), 4L, "UINT32"))
 attr <- tiledb_attr("a", type = "UINT32")
@@ -94,24 +92,26 @@ uri <- tempfile()
 if (dir.exists(uri)) unlink(uri, recursive=TRUE)
 tiledb_array_create(uri, sch)
 arr <- tiledb_array(uri, return_as="asis", extended=FALSE)
-val <- arr[1:4][[1]]
-## when fill value has been set, expect value
-expect_equal(val, rep(42, 4))
-expect_equal(tiledb_attribute_get_fill_value(attr), 42)
+if (tiledb_version(TRUE) > "2.14.0") {
+    val <- arr[1:4][[1]]
+    ## when fill value has been set, expect value
+    expect_equal(val, rep(42, 4))
+    expect_equal(tiledb_attribute_get_fill_value(attr), 42)
 
-attr <- tiledb_attr("b", type = "CHAR", ncells = NA)
-tiledb_attribute_set_fill_value(attr, "abc")
-sch <- tiledb_array_schema(dom, attr)
-uri <- tempfile()
-if (dir.exists(uri)) unlink(uri, recursive=TRUE)
-tiledb_array_create(uri, sch)
-#arr <- tiledb_dense(uri)
-#val <- arr[]
-expect_equal(tiledb_attribute_get_fill_value(attr), "abc")
+    attr <- tiledb_attr("b", type = "CHAR", ncells = NA)
+    tiledb_attribute_set_fill_value(attr, "abc")
+    sch <- tiledb_array_schema(dom, attr)
 
-if (dir.exists(uri)) unlink(uri, recursive=TRUE)
+    uri <- tempfile()
+    if (dir.exists(uri)) unlink(uri, recursive=TRUE)
+    tiledb_array_create(uri, sch)
+    #arr <- tiledb_dense(uri)
+    #val <- arr[]
+    expect_equal(tiledb_attribute_get_fill_value(attr), "abc")
+
+    if (dir.exists(uri)) unlink(uri, recursive=TRUE)
 #})
-
+}
 
 ## datetimes test (cf ex_aggdatetimes)
 suppressMessages({
@@ -142,7 +142,7 @@ attrib <- c(tiledb_attr("year",  type = "DATETIME_YEAR"),  # year
 schema <- tiledb_array_schema(domain, attrib, sparse=TRUE)
 res <- tiledb_array_create(uri, schema)
 
-arr <- tiledb_array(uri, as.data.frame=TRUE)
+arr <- tiledb_array(uri, return_as="data.frame")
 
 dvec <- 1:3
 data <- data.frame(row = dvec,
@@ -162,12 +162,11 @@ data <- data.frame(row = dvec,
                    )
 
 arr[] <- data
-arr2 <- tiledb_array(uri, as.data.frame=TRUE)
+arr2 <- tiledb_array(uri, return_as="data.frame")
 readdata <- arr2[]
 expect_true(all.equal(data, readdata, check.attributes=FALSE))
 
 
-if (tiledb_version(TRUE) < "2.2.0") exit_file("Needs TileDB 2.2.* or later")
 attrib <- tiledb_attr("a",  type = "INT32")
 tiledb_attribute_set_nullable(attrib, TRUE)
 expect_true(tiledb_attribute_get_nullable(attrib))
@@ -181,7 +180,6 @@ expect_true(tiledb_attribute_get_nullable(attrib))
 
 attrib <- tiledb_attr("a",  type = "FLOAT64", nullable=FALSE)
 expect_false(tiledb_attribute_get_nullable(attrib))
-
 
 uri <- tempfile()
 if (dir.exists(uri)) unlink(uri, recursive=TRUE)
@@ -217,7 +215,44 @@ df <- data.frame(row     =  1:10,
 arr <- tiledb_array(uri)
 arr[] <- df
 
-newarr <- tiledb_array(uri, as.data.frame=TRUE)
+newarr <- tiledb_array(uri, return_as="data.frame")
 chk <- newarr[]
 expect_equal(df[,1:10], chk[,1:10])
 expect_equivalent(as.numeric(df[,11]), chk[,11]) # we currently return uint64_t as numeric
+
+
+## BOOL support added in 2.10.0
+if (tiledb_version(TRUE) < "2.10.0") exit_file("Remainder needs 2.10.* or later")
+
+uri <- tempfile()
+if (dir.exists(uri)) unlink(uri, recursive=TRUE)
+
+## high-level
+D <- data.frame(key=c(2L,4L,6L,8L), val=c(TRUE,FALSE,NA,TRUE))
+fromDataFrame(D, uri, col_index=1)
+arr <- tiledb_array(uri, return_as="data.frame")
+res <- arr[]
+attr(res, "query_status") <- NULL
+expect_equal(D, res)
+
+
+## lower-level testing tiledb_query_set_buffer
+if (tiledb_version(TRUE) < "2.14.0") exit_file("Remainder needs 2.14.* or later")
+if (dir.exists(uri)) unlink(uri, recursive=TRUE)
+v <- D[, "val"]
+v[3] <- TRUE                            # without nullable for simplicity
+dim <- tiledb_dim(name = "dim", domain = c(0L, 3L), type = "INT32")
+sch <- tiledb_array_schema(domain = tiledb_domain(dim),
+                           attrs = tiledb_attr("val", type = "BOOL"))
+tiledb_array_create(uri, sch)
+arr <- tiledb_array(uri)
+qry <- tiledb_query(arr, "WRITE")
+qry <- tiledb_query_set_buffer(qry, "val", v)
+qry <- tiledb_query_submit(qry)
+qry <- tiledb_query_finalize(qry)
+expect_equal(tiledb_query_status(qry), "COMPLETE")
+
+arr2 <- tiledb_array(uri, return_as="data.frame")
+res2 <- arr2[0:3]
+attr(res2, "query_status") <- NULL
+if (!isWindows) expect_equal(v, res2[,"val"])

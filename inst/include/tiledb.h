@@ -1,14 +1,30 @@
 
-// sadly we need to define it here too to reach RcppExports.cpp
-#define TILEDB_DEPRECATED
+// We need to define this here to reach RcppExports.cpp
+// TileDB 2.15.0 or later no longer need it
+#if defined(TILEDB_SILENT_BUILD)
+  #define TILEDB_DEPRECATED
+#endif
 
 #include <tiledb/tiledb>
 #if TILEDB_VERSION_MAJOR == 2 && TILEDB_VERSION_MINOR >= 4
-#include <tiledb/tiledb_experimental>
+  // this header includes the other experimental headers
+  // condition on the appropriate version is still done in each function
+  #include <tiledb/tiledb_experimental>
 #endif
 
-#define STRICT_R_HEADERS
+// Use the 'finalizer on exit' toggle in the XPtr template to ensure
+// we do in fact finalize on exit too (and not only on garbage
+// collection / object removal which may leave some TileDB object around)
+// Usage of this toggle requires Rcpp 1.0.8 or later so a versioned Depends
+// has been added to the DESCRIPTION file.
+#define RCPP_USE_FINALIZE_ON_EXIT
 #include "Rcpp.h"
+
+#include "tinyspdl.h"
+#include "column_buffer.h"
+#include "array_buffers.h"
+
+#include "nanoarrow.h"
 
 #ifndef __tiledb_h__
 #define __tiledb_h__
@@ -21,26 +37,10 @@ struct var_length_char_buffer {
     int32_t rows, cols;              	// dimension from subarray
     bool nullable;                      // flag
     std::vector<uint8_t> validity_map;  // for nullable vectors
+    bool legacy_validity;               // for legacy validity mode
 };
 typedef struct var_length_char_buffer vlc_buf_t;
 
-// template <typename T>
-// struct var_length_vec_buffer_initial {
-//   std::vector<uint64_t> offsets;  // vector for offset values
-//   std::vector<T> data;            // vector for data values
-// };
-// using vli_buf_t_old = struct var_length_vec_buffer_initial<int32_t>;
-// using vld_buf_t_old = struct var_length_vec_buffer_initial<double>;
-
-// THIS WORKS
-// template <typename T>
-// struct var_length_vec_buffer {
-// public:
-//   std::vector<uint64_t> offsets;  // vector for offset values
-//   std::vector<T> data;            // vector for data values
-// };
-// using vli_buf_t = struct var_length_vec_buffer<int32_t>;
-// using vld_buf_t = struct var_length_vec_buffer<double>;
 
 struct var_length_vec_buffer {
 public:
@@ -58,16 +58,27 @@ struct query_buffer {
     //void *ptr;                    	// pointer to data as an alternative
     std::vector<int8_t> vec;        	// vector of int8_t as a memory container
     tiledb_datatype_t dtype;        	// data type
-    R_xlen_t ncells;                	// extent
-    size_t size;                    	// element size
+    R_xlen_t ncells;                	// extent, i.e. number elements
+    size_t size;                    	// element size, i.e. sizeof() given data type
+    int32_t numvar;                     // number of elements per cells, generally fixed
     std::vector<uint8_t> validity_map;  // for nullable vectors
     bool nullable;                      // flag
 };
 typedef struct query_buffer query_buf_t;
 
+// map from buffer names to shared_ptr to column_buffer
+typedef std::unordered_map<std::string, std::shared_ptr<tiledb::ColumnBuffer>> map_to_col_buf_t;
+
+// some lipstick on the pig that is a SEXP -- but we stick with the S3 SEXP nanoarrow creates
+typedef SEXP nanoarrowS3;
+
 // C++ compiler complains about missing delete functionality when we use tiledb_vfs_fh_t directly
 struct vfs_fh {
-   void *fh;
+#if TILEDB_VERSION_MAJOR == 2 && TILEDB_VERSION_MINOR >= 15
+    tiledb_vfs_fh_handle_t* fh;
+#else
+    tiledb_vfs_fh_t* fh;
+#endif
 };
 typedef struct vfs_fh vfs_fh_t;
 
@@ -80,7 +91,7 @@ namespace tiledb {
 #endif
 
 #if TILEDB_VERSION_MAJOR == 2 && TILEDB_VERSION_MINOR < 3
-// we need a placeholder as tiledb::QueryCondition is in at least one function signature
+// we need a placeholder as tiledb::QueryCondition as it is in at least one function signature
 namespace tiledb {
     class QueryCondition {
     };
@@ -88,9 +99,38 @@ namespace tiledb {
 #endif
 
 #if TILEDB_VERSION_MAJOR == 2 && TILEDB_VERSION_MINOR < 4
-// we need a placeholder as tiledb::ArraySchemaEvolution is in function signatures
+// we need a placeholder as tiledb::ArraySchemaEvolution as it is in function signatures
 namespace tiledb {
     class ArraySchemaEvolution {
+    };
+}
+#endif
+
+#if TILEDB_VERSION_MAJOR == 2 && TILEDB_VERSION_MINOR < 8
+// we need a placeholder as tiledb::Group as it is in function signatures
+namespace tiledb {
+    class Group {
+    };
+}
+#endif
+
+#if TILEDB_VERSION_MAJOR == 2 && TILEDB_VERSION_MINOR < 7
+// we need a placeholder as tiledb::Subarray as it is in function signatures
+namespace tiledb {
+    class Subarray {
+    };
+}
+#endif
+
+#if TILEDB_VERSION_MAJOR == 2 && TILEDB_VERSION_MINOR < 25
+// we need a placeholder as tiledb::NDRectangle as it is in function signatures
+namespace tiledb {
+    class NDRectangle {
+    };
+}
+// we need a placeholder as tiledb::CurrentDomain as it is in function signatures
+namespace tiledb {
+    class CurrentDomain {
     };
 }
 #endif

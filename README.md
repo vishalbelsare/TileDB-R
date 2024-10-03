@@ -1,20 +1,23 @@
-[![Build Status](https://img.shields.io/azure-devops/build/tiledb-inc/836549eb-f74a-4986-a18f-7fbba6bbb5f0/24/master?label=Azure%20Pipelines&logo=azure-pipelines&style=flat-square)](https://dev.azure.com/TileDB-Inc/CI/_build/latest?definitionId=24&branchName=master)
-[![R-CMD-check](https://github.com/TileDB-Inc/TileDB-R/workflows/R-CMD-check/badge.svg)](https://github.com/TileDB-Inc/TileDB-R/actions/workflows/R-CMD-check.yaml)
+[![ci](https://github.com/TileDB-Inc/TileDB-R/actions/workflows/ci.yaml/badge.svg)](https://github.com/TileDB-Inc/TileDB-R/actions/workflows/ci.yaml)
+[![windows](https://github.com/TileDB-Inc/TileDB-R/actions/workflows/windows.yaml/badge.svg)](https://github.com/TileDB-Inc/TileDB-R/actions/workflows/windows.yaml)
+[![valgrind](https://github.com/TileDB-Inc/TileDB-R/actions/workflows/valgrind.yaml/badge.svg)](https://github.com/TileDB-Inc/TileDB-R/actions/workflows/valgrind.yaml)
 [![Downloads](https://cranlogs.r-pkg.org/badges/grand-total/tiledb?color=brightgreen)](https://cran.r-project.org/package=tiledb)
 [![CRAN](https://www.r-pkg.org/badges/version/tiledb)](https://cran.r-project.org/package=tiledb)
+[![r-universe](https://tiledb-inc.r-universe.dev/badges/tiledb)](https://tiledb-inc.r-universe.dev/tiledb)
+[![r-universe dev](https://eddelbuettel.r-universe.dev/badges/tiledb)](https://eddelbuettel.r-universe.dev/tiledb)
 
 # <a href="https://tiledb.com/"><img src="https://github.com/TileDB-Inc/TileDB/raw/dev/doc/source/_static/tiledb-logo_color_no_margin_@4x.png" alt="TileDB logo" width="400"></a>
 
-The TileDB R package offers an [R](https://www.r-project.org/) interface to the [storage
-engine](https://github.com/TileDB-Inc/TileDB) of [TileDB](https://tiledb.com/).
+The TileDB R package offers an [R](https://www.r-project.org/) interface to
+the [modern database](https://github.com/TileDB-Inc/TileDB) by [TileDB](https://tiledb.com/).
 
-Note that the R interface to TileDB is under development, and the API is subject to change.
 
 ## Documentation
 
 Documentation is available for [the R
 package](https://tiledb-inc.github.io/TileDB-R/) as well as for the [TileDB
 API](https://docs.tiledb.com/main/).
+
 
 ## Installation
 
@@ -37,9 +40,8 @@ The most recent released version can be installed from
     > remotes::install_github("TileDB-Inc/TileDB-R")
     ...
     > library(tiledb)
-    > tiledb_version()
-    major minor patch
-        2     3     1
+    TileDB R 0.30.0 with TileDB Embedded 2.26.0 on Ubuntu 24.04.
+    See https://tiledb.com for more information about TileDB.
     > help(package=tiledb)
 
 If the TileDB library is installed in a custom location, you need to pass the explicit path:
@@ -47,8 +49,9 @@ If the TileDB library is installed in a custom location, you need to pass the ex
     > remotes::install_github("TileDB-Inc/TileDB-R",
           args="--configure-args='--with-tiledb=/path/to/tiledb'")
 
-Note that the TileDB R package is developed and tested against the latest stable (`v2.3.x`) version
+Note that the TileDB R package is always developed and tested against the latest stable version
 of TileDB, but should also build against the newest development version.
+
 
 ## Quick Links
 
@@ -59,7 +62,7 @@ of TileDB, but should also build against the newest development version.
 
 ## Copyright
 
-The TileDB R package is Copyright 2018-2021 TileDB, Inc
+The TileDB R package is Copyright 2018-2024 TileDB, Inc
 
 ## License
 

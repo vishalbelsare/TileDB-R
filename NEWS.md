@@ -1,3 +1,907 @@
+# tiledb 0.30.2
+
+* This release of the R package builds against [TileDB 2.26.2](https://github.com/TileDB-Inc/TileDB/releases/tag/2.26.2), and has also been tested against earlier releases as well as the development version (#757)
+
+* Fix MacOS `rpath` ([#760](https://github.com/TileDB-Inc/TileDB-R/issues/758))
+
+* Fix "Can't read domain for dimensions of type UINT16" ([#758](https://github.com/TileDB-Inc/TileDB-R/issues/758))
+
+# tiledb 0.30.1
+
+* This release of the R package builds against [TileDB 2.26.1](https://github.com/TileDB-Inc/TileDB/releases/tag/2.26.1), and has also been tested against earlier releases as well as the development version (#757)
+
+
+# tiledb 0.30.0
+
+* This release of the R package builds against [TileDB 2.26.0](https://github.com/TileDB-Inc/TileDB/releases/tag/2.26.0), and has also been tested against earlier releases as well as the development version (#745, #749, #750, #754, #755)
+
+## Improvements
+
+* Error messages displayed when a mismatched external pointer is detected now show both expected and encountered types (#740)
+
+* `NDRectangle` objects can now instantiate from more domain data types (#741, #742)
+
+* `NDRectangle` objects can now return their number of dimensions and dimension data types (#743)
+
+* `FragmentInfo` objects are dump via the `<<` stringstream operator instead of a now-deprecated `dump()` method (#753)
+
+## Documentation
+
+* The documentation website now uses favicon symbols for all pages rendered (#739)
+
+## Build and Test Systems
+
+* The nighly valgrind matrix now includes release 2.26.0 (#744)
+
+* The continuous integration script has been updated reflecting external changes (#746)
+
+## Removals
+
+* Boolean arguments `as.data.frame`, `as.matrix` and `as.array` to the `tiledb_array()` accessor, deprecated in release 0.20.0 in July 2023 in favor of the more general `return_as="..."` form, have been removed. (#751)
+
+## Deprecation
+
+* As BioConductor package \pkg{TileDBArray} still relies on `as.data.frame` it was temporarily re-admitted as an argument. It is expected to be removed following the upcoming 3.20 release of BioConducto.r (#752)
+
+
+# tiledb 0.29.0
+
+* This release of the R package builds against [TileDB 2.25.0](https://github.com/TileDB-Inc/TileDB/releases/tag/2.25.0), and has also been tested against earlier releases as well as the development version (#728, #736)
+
+## Improvements
+
+* Three deprecated calls to `dump()` methods for TileDB Embedded objects now use the preferred streaming alternatives (#727)
+
+* Two already deprecated functions that are removed in TileDB 2.26.0 are no longer used (#732)
+
+* The vendored [nanoarrow](https://github.com/apache/arrow-nanoarrow) has been updated to its release [0.5.0](https://github.com/apache/arrow-nanoarrow/releases/tag/apache-arrow-nanoarrow-0.5.0) (#733)
+
+* Fragments can now be removed by supplying a vector of fragment URIs (#734)
+
+* `NDRectangle` and `CurrentDomain` objects are supported (with 2.25.0 or newer) and can be used with `ArraySchema` and `ArraySchemeEvolution` domain of (#735, #737)
+
+## Build and Test Systems
+
+* The nighly valgrind matrix now includes release 2.25.0 (#729)
+
+
+# tiledb 0.28.2
+
+* This release of the R package builds against [TileDB 2.24.2](https://github.com/TileDB-Inc/TileDB/releases/tag/2.24.2), and has also been tested against earlier releases as well as the development version (#725)
+
+
+# tiledb 0.28.1
+
+* This release of the R package builds against [TileDB 2.24.1](https://github.com/TileDB-Inc/TileDB/releases/tag/2.24.1), and has also been tested against earlier releases as well as the development version (#714, #715, #717, #724)
+
+## Improvements
+
+* When creating arrays with `fromDataFrame`, start and/or end timestamps can now be specified (#719)
+
+## Build and Test Systems
+
+* The nighly continuous integration matrix now included Core release 2.24.0 and 2.22.0 is dropped (#721)
+
+* The Conda build is now accomodating the change from #710 (#722)
+
+
+# tiledb 0.28.0
+
+* This release of the R package builds against [TileDB 2.24.0](https://github.com/TileDB-Inc/TileDB/releases/tag/2.24.0), and has also been tested against earlier releases as well as the development version (#714, #715, #717)
+
+## Improvements
+
+* Three internal and unexported helper functions now document more clearly how they can be called explicitly. (#709)
+
+* Reading and writing of text- and binary files supported by a VFS backend is now supported. (#710)
+
+## Build and Test Systems
+
+* Building TileDB Embedded from source now uses `tiledb install-tiledb` as targets in a single CMake step. (#711, #713)
+
+* The time-travel tests now uses absolute (given) timestamps for writes as well as reads. (#716)
+
+
+# tiledb 0.27.0
+
+* This release of the R package builds against [TileDB 2.23.0](https://github.com/TileDB-Inc/TileDB/releases/tag/2.23.0), and has also been tested against earlier releases as well as the development version (#701, #704)
+
+## Improvements
+
+* Group elements can now be deleted (#702)
+
+* Two error messages now show the human-readable type representation instead of the enum counter value (#705)
+
+## Build and Test Systems
+
+* The test files receives a minor refactoring absorbing two files (#698)
+
+* The nightly valgrind run was updated to include release 2.23.0, release 2.21 has been removed (#703)
+
+## Deprecations
+
+* Function `libtiledb_array_create_with_key`, accessing a deprecated Core function, is now in `src/deprecated.cpp` and will be removed at later point (#699)
+
+## Removals
+
+* Functions `libtiledb_query_add_range_with_type` and `libtiledb_query_add_range`, deprecated in release 0.17.1 in January 2023, have been now removed (#700).
+
+
+# tiledb 0.26.0
+
+* This release of the R package builds against [TileDB 2.22.0](https://github.com/TileDB-Inc/TileDB/releases/tag/2.22.0), and has also been tested against earlier releases as well as the development version (#679, #686, #693, #696)
+
+## Improvements
+
+* The display of a `filter_list` is now labeled correctly as a filter list (@cgiachalis in #681 addressing #678)
+
+* The Arrow integration has been simplified using [nanoarrow](https://github.com/apache/arrow-nanoarrow) returning a single `nanoarrow` object; an unexported helper function `nanoarrow2list()` is provided to matching the previous interface (#682, #685)
+
+* An new accessor for recursive listings of (currently S3-only) URI is now available (with TileDB Core >= 2.22.0) (#691)
+
+* Initial support for TILEDB_GEOM_WKB and TILEB_GEOM_WKT has been added (with TileDB Core >= 2.21.0) (#692)
+
+## Bug Fixes
+
+* The column headers now correspond to the column content in the two-column `data.frame` returns by `tiledb_object_walk` (#684 closing #683)
+
+## Build and Test Systems
+
+* The `configure` and `Makevars.in` received a minor update correcting small issues (#680)
+
+* The nightly valgrind run was updated to include release 2.22.0 (#687), release 2.19 and 2.20 have been removed (#695)
+
+## Documentation
+
+* A number of minor typographical and grammar errors in the function documentation has been corrected (@cgiachalis in #681)
+
+## Deprecations
+
+* Functions `tiledb_arrow_array_ptr()`, `tiledb_arrow_schmea_ptr()`, `tiledb_arrow_array_del()` and `tiledb_arrow_schema_del()` are deprecated (in favor of using the corresponding `nanoarrow` functions) and will be removed in a future release (#685)
+
+* The function `tiledb_query_submit_async()` is marked as deprecated (as is the underlying C++ function) and slated for removal in a future release (#694)
+
+
+# tiledb 0.25.0
+
+* This release of the R package builds against [TileDB 2.21.0](https://github.com/TileDB-Inc/TileDB/releases/tag/2.21.0), and has also been tested against earlier releases as well as the development version (#661, #666, #668, #676, #677)
+
+## Improvements
+
+* The vendored [nanoarrow](https://github.com/apache/arrow-nanoarrow) sources have been update to release 0.4.0, and use of its facilities has been extended (#663)
+
+* Query conditions can be expressed against non-existing enumeration (_i.e._, `factor`) values when TileDB Core 2.21.0 or later is used (#674)
+
+* The `tiledb_array_upgrade_version` helper function to upgrade an schema version is now available (#675)
+
+## Bug Fixes
+
+* The `tiledb_get_query_range_var()` accessor now correctly calls the range getter for variable-sized dimensions (#662)
+
+* The nightly valgrind check now installs to require `nanoarrow` package (#664)
+
+* Variable cell numbers can now set consistently for all attribute types (#670)
+
+* Object walk traversal order detection has been corrected (#671)
+
+## Build and Test Systems
+
+* The nightly valgrind run was updated to include release 2.21 (#669)
+
+* Unit tests have been added for the TileDB 'object' functions (#671, #672)
+
+* Obsolete checks for an ancient Windows version have been removed from the unit tests (#673)
+
+
+# tiledb 0.24.0
+
+* This release of the R package builds against [TileDB 2.20.0](https://github.com/TileDB-Inc/TileDB/releases/tag/2.20.0), and has also been tested against earlier releases as well as the development version (#651,#654,#658,#659)
+
+## Improvements
+
+* Factor level additions now check for possible over in the index type (#645, #646)
+
+* Aggregate operations can now be performed on dense arrays via a query object with appropriate subarray settings (#650)
+
+## Bug Fixes
+
+* Factor level additions ensure the factor is releveled under the full set of factors (#644)
+
+* The example for `fromDataFrame()` has been updated, along with two other help files (#648)
+
+* Handling of temporary files in one test script has been standardized (#653)
+
+## Build and Test Systems
+
+* The nightly valgrind run was updated to include release 2.20 (#649)
+
+## Documentation
+
+* The DESCRIPTION file now contains a reference to the documentation site in its URL field (#656)
+
+
+# tiledb 0.23.0
+
+* This release of the R package builds against [TileDB 2.19.0](https://github.com/TileDB-Inc/TileDB/releases/tag/2.19.0), and has also been tested against earlier releases as well as the development version (#641)
+
+## Improvements
+
+* A TileDB Array can now be opened in 'keep open' mode for subsequent use without re-opening (#630)
+
+* Arrays with factor (or ordered) variables now grow their factor levels in appending writes (#639)
+
+* Initialization of object walk order in recursive mode is now more explicit (#640)
+
+* Use of TileDB Embedded was upgraded to release 2.18.3 (#638), and 2.19.0 (#641)
+
+## Bug Fixes
+
+* The read buffer is now correctly sized when implementing VFS serialization (#631)
+
+## Build and Test Systems
+
+* Builds from TileDB Core non-release tarballs are now supported via new configure option (#627)
+
+* Tests are more careful about using suggested packages only when present (#632)
+
+* When building TileDB Core, shared linking is now requested explicitly (#634)
+
+* Nightly automated checks now include Core release-2.19 and add the 'curl' binary (#635)
+
+* Builds on maOS now set release 11 ('Big Sur') as the required minimum version (#636)
+
+
+# tiledb 0.22.0
+
+* This release of the R package builds against [TileDB 2.18.0](https://github.com/TileDB-Inc/TileDB/releases/tag/2.18.0), [TileDB 2.18.1](https://github.com/TileDB-Inc/TileDB/releases/tag/2.18.1),  [TileDB 2.18.2](https://github.com/TileDB-Inc/TileDB/releases/tag/2.18.2) and has also been tested against earlier releases as well as the development version (#620,#621,#624)
+
+## Improvements
+
+* Use of TileDB Embedded was upgraded to release 2.18.0 (#620), 2.18.1 (#621), and 2.18.2 (#624)
+
+* Support for Aggregates has been added (#623)
+
+## Bug Fixes
+
+* When using serializing via VFS (as added in #608) the filehandles is now properly released (#619)
+
+## Build and Test Systems
+
+* Some tests were refactored slightly for greater robustness (#618)
+
+* Support for download and build with an external TileDB Core source tarball has been added (#622)
+
+## Documentation
+
+* The README now contains a badge for the r-universe version (in addition to CRAN) (#617)
+
+
+# tiledb 0.21.3
+
+* This release of the R package builds against [TileDB 2.17.4](https://github.com/TileDB-Inc/TileDB/releases/tag/2.17.4), and has also been tested against earlier releases as well as the development version (#611)
+
+## Improvements
+
+* Query conditioning parsing now supports `factor` index columns other than the standard `integer` type (#614)
+
+## Build and Test Systems
+
+* The nightly valgrind run was updated to include release 2.18 (#615)
+
+## Documentation
+
+* The pkgdown documentation has been updated for release 0.21.2 (#613) and release 0.21.3 (#616)
+
+
+# tiledb 0.21.2
+
+* This release of the R package builds against [TileDB 2.17.4](https://github.com/TileDB-Inc/TileDB/releases/tag/2.17.4), and has also been tested against earlier releases as well as the development version (#611)
+
+## Improvements
+
+* Set conditions are supported in query condition expressions (#597)
+
+* Query conditions expression parsing via `parse_query_conditions` was extended simmilarly (#598)
+
+* Array fragment deletions uses a new static method (with TileDB 2.18.0 or later) (#599)
+
+* The included `nanoarrow` header and source file have been updated to release 0.3.0 (#600)
+
+* Query conditions expression parsing requirements are stated and tested more clearly (#601)
+
+* Use of TileDB Embedded was upgraded to release 2.17.2 (#602)
+
+* Enumeration (aka 'factor') support has been extended for 'empty' creation and subsequent extension with new levelss (#605)
+
+* Use of TileDB Embedded was upgraded to release 2.17.3 (#606)
+
+* Factor variables with (unlikely) int64 indices are supported (#607)
+
+* R objects can be (de-)serialized to and from VFS paths (#608)
+
+* Enumeration support has been extended to some cases only supported by Arrow (#609)
+
+* Use of TileDB Embedded was upgraded to release 2.17.4 (#611)
+
+## Bug Fixes
+
+* The DESCRIPTION file now correctly refers to macOS 10.14 (#596)
+
+* The (explicitly) 'batched reader now ensure a correct layout for sparse arrays (#610)
+
+## Build and Test Systems
+
+* The nightly valgrind run was updated to include release 2.17 (#603)
+
+
+
+# tiledb 0.21.1
+
+* This release of the R package builds against [TileDB 2.17.1](https://github.com/TileDB-Inc/TileDB/releases/tag/2.17.1), and has also been tested against earlier releases as well as the development version (#593)
+
+## Improvements
+
+* Array schema evolution has been extended to support enumerations (#590, #591)
+
+* Conversion to and from `integer64` (and `nanotime`) now use package [RcppInt64](https://cran.r-project.org/package=RcppInt64) (#592)
+
+* Use of TileDB Embedded was upgraded to release 2.17.1 (#593)
+
+## Bug Fixes
+
+* An added sorting of factor levels insert has been reverted (#594)
+
+
+# tiledb 0.21.0
+
+* This release of the R package builds against [TileDB 2.17.0](https://github.com/TileDB-Inc/TileDB/releases/tag/2.17.0), and has also been tested against earlier releases as well as the development version (#583, #587)
+
+## Improvements
+
+* Use of TileDB Embedded was upgraded to release 2.17.0 (#583,#587)
+
+* Built-time configuration of TileDB Embedded can now be accessed as a JSON string (#584)
+
+* Enumeration types (i.e. what R calls `factor` variables) are now supported (#562)
+
+* Enumeration support has been extended to `ordered` types (#586)
+
+
+# tiledb 0.20.3
+
+* This release of the R package builds against [TileDB 2.16.2](https://github.com/TileDB-Inc/TileDB/releases/tag/2.16.2), and has also been tested against earlier releases as well as the development version (#582)
+
+## Improvements
+
+* Use of TileDB Embedded was upgraded to release 2.16.2 (#581)
+
+
+# tiledb 0.20.2
+
+* This release of the R package builds against [TileDB 2.16.1](https://github.com/TileDB-Inc/TileDB/releases/tag/2.16.1), and has also been tested against earlier releases as well as the development version (#579)
+
+## Improvements
+
+* The column buffer allocation is now robust to container overflow sanitizer checks (#574)
+
+* The array schema version is now accessible via a function (#575)
+
+* Use of TileDB Embedded was upgraded to release 2.16.1 (#576)
+
+* The tile extend getter function is now able to access a wider range of possible values (#577)
+
+## Build and Test Systems
+
+* The minimal version of TileDB Embedded that can be used with the R package is now release 2.7.0 (#578)
+
+
+# tilebd 0.20.1
+
+* This release of the R package builds against [TileDB 2.16.0](https://github.com/TileDB-Inc/TileDB/releases/tag/2.16.0), and has also been tested against earlier releases as well as the development version
+
+## Bug Fixes
+
+* Several minor adjustments were made to not tickle any notives from R-devel CMD check especially on Windows (#571)
+
+* A memory allocation for Arrow objects was aligned with how that memory is later freed (#572)
+
+## Build and Test Systems
+
+* The valgrind nightly test was rolled from branches 2.14 and 2.15 to 2.15 and 2.16 of the TileDB Embedded library.
+
+
+# tilebd 0.20.0
+
+* This release of the R package builds against [TileDB 2.16.0](https://github.com/TileDB-Inc/TileDB/releases/tag/2.16.0), and has also been tested against earlier releases as well as the development version (#551, #559, #563)
+
+## Improvements
+
+* The startup message is now reformated across two shorter lines (#545)
+
+* Support for returning 'Arrow Table' objects has been added (#548)
+
+* Use of TileDB Embedded was upgraded to release 2.15.3 (#551)
+
+* Date columns can now be exported to Arrow as well (#554)
+
+* Array writes which set timestamps now take advantage of the new temporal policy API (#558)
+
+* Displaying a schema is now more readable with additional linebreaks (#560)
+
+* Attempts to select on dimensions that do not exist now error out with a message (#561)
+
+* Integer64 values can now be written to array metadata (#564)
+
+* Date and POSIXct attributes are now supported in query conditions (#568)
+
+## Bug Fixes
+
+* Consolidation and vacuum calls now reflect the state of the global context object (#547)
+
+* Pointers to 'Arrow Table' objects representing the table columns are now in external pointers too (#550)
+
+* The documentation for 'Dimensions' was corrected in two spots in its wording / grammar (#552)
+
+## Build and Test Systems
+
+* 'sudo' mode is reenabled for package 'bspm' used in the continuous integration at GitHub Actions (#549)
+
+* Compilation on Linux systems as old as Ubuntu 18.04 without a `filesystem` header is now possible (#556)
+
+## Deprecations
+
+* The boolean arguments `as.data.frame`, `as.matrix` and `as.array` to the `tiledb_array()` accessor are deprecated in favor of the more general `return_as="..."` form. (#567)
+
+## Removals
+
+* The `timestamp` argument to `tiledb_array`, deprecated in favor of `timestamp_end` (and `timestamp_start`) in July 2021, has been removed (#566).
+
+
+# tiledb 0.19.1
+
+* This release of the R package builds against [TileDB 2.15.2](https://github.com/TileDB-Inc/TileDB/releases/tag/2.15.2), and has also been tested against earlier releases as well as the development version (#534, #541).
+
+## Improvements
+
+* Query conditions can now be expressed for attributes of type UTF-8 (#529)
+
+* The startup message now displays the operating system and version (#532)
+
+* Use of TileDB Embedded was upgraded to release 2.15.1 and 2.15.2 (#534, #541)
+
+* Group objects can be opened while supplying a Config object when 2.15.1 or newer is used (#535, #536)
+
+* For character column buffer allocations, the R function now accepts a `nullable` option (#537)
+
+* For standard buffer allocations, the R function now accepts `nullable` and `varnum` options (#538)
+
+* Query conditions can now be expressed on boolean attributes (#540)
+
+## Build and Test Systems
+
+* Testing for Groups reflect the stricter behavior in config setting requiring a close array (#530)
+
+* The use of binary packages in continuous integration has been made a little more robust (#531)
+
+* A small subset of tests are skipped if testing against the older release 2.14.* (#542)
+
+
+# tiledb 0.19.0
+
+* This release of the R package builds against [TileDB 2.15.0](https://github.com/TileDB-Inc/TileDB/releases/tag/2.15.0), and has also been tested against earlier releases as well as the development
+  version (#516, #521).
+
+## Breaking Changes
+
+* The validity map coding of nullable strings has been corrected: validity map values of one are now interpreted as valid/non-null for full compatibility with other TileDB projects. Previously written arrays with nullable strings can be read by setting the config option `r.legacy_validity_mode` to `true`; the option also permits to write to an older installation. A conversion helper script is provided in `scripts/legacy_validity_convert.r`. (#517)
+
+## Improvements
+
+* Attributes can now be created, written and read from in (explicit) UTF8 types (and CHAR and ASCII already behaved correctly with respect to utf8 data) (#510)
+
+* Compilation under `clang++` no longer complains about two unused member variables (#512)
+
+* Query conditions for character columns can now be expressed using the `%in%` operator and a vector of values (#513)
+
+* Use of TileDB Embedded was upgraded to releases 2.14.1 and 2.15.0 (#516, #521)
+
+* Safer checking of `NAs` in `tiledb_config()` to support R 4.2 conditional lengths (#519)
+
+* Query conditions can now be combined using `&` and `|` (in addition to `&&` and `||`) (#526)
+
+## Bug Fixes
+
+* The access to JSON-formatted performance statistics has been simplified (#514)
+
+## Build and Test Systems
+
+* The TileDB Embedded version is now used to determine whether a dampener is needed for the deprecation warning (#511)
+
+* One of the test data sets included with #517 has been regenerated under an older TileDB version in order to test on more systems (#523)
+
+* Documentation for Metadata accessors no longer states URIs strings are accepted (#527)
+
+## Deprecations
+
+## Removals
+
+
+# tiledb 0.18.0
+
+* This release of the R package builds against [TileDB 2.14.0](https://github.com/TileDB-Inc/TileDB/releases/tag/2.14.0), and has also been tested against earlier releases as well as the development version (#502).
+
+## Improvements
+
+* Use of TileDB Embedded was upgraded to release 2.14.0 (#505)
+
+## Bug Fixes
+
+## Build and Test Systems
+
+* The nightly valgrind job matrix was updated to releases 2.13 and 2.14 as well as the branch (#504)
+
+* The nightly valgrind job show the most recent commit sha1 after updating from release branches (#507)
+
+* A query condition test for utf8 attributes has been added (#507, #508)
+
+## Deprecations
+
+## Removals
+
+
+# tiledb 0.17.1
+
+* This release of the R package builds against [TileDB 2.13.1](https://github.com/TileDB-Inc/TileDB/releases/tag/2.13.1), and has also been tested against earlier releases as well as the development version (#502).
+
+## Improvements
+
+* Support for Subarrays to set ranges has been extended (#496)
+
+* Deprecated Core API functions for Array access and range setting are longer used (#496)
+
+* TileDB Group objects now have a default `show()` method (#498, #499)
+
+* Domain and tile sizes for int64 dimension objects are now internally converted (#500)
+
+* Use of TileDB Embedded was upgraded to release 2.13.1 (#501)
+
+## Bug Fixes
+
+* Fragment info domain getters now work with ASCII domains (#495)
+
+* The scale filter option setting was corrected to use the proper types (#503)
+
+## Build and Test Systems
+
+* The nightly valgrind job setup was updated to include two new dependencies (#493)
+
+* The Windows setup for continuous integration was updated (#494)
+
+## Deprecations
+
+* Functions `libtiledb_query_add_range{,_with_type}` relying on depecreated Core
+  functionality are deprecated, and will be removed with the Core functions.
+  Subarray range setters are available. This is a mostly internal change.
+
+## Removals
+
+* Functions `libtiledb_query_set_coordinates()` and `libtiledb_coords()`
+  which have been deprecated since June 2000 have been removed. (#497)
+
+
+# tiledb 0.17.0
+
+* This release of the R package builds against [TileDB 2.13.0](https://github.com/TileDB-Inc/TileDB/releases/tag/2.13.0), and has also been tested against earlier releases as well as the development version (#492).
+
+## Improvements
+
+* Support for testing group URIs on being relative has been added (#478)
+
+* Logging support at the R and C++ level has been added (#479, #487, #489)
+
+* Use of TileDB Embedded was upgraded to release 2.12.1, and 2.12.2 (#480, #481)
+
+* Sparse array queries via tiledb_array and '[]' access use an UNORDERED query layout (#488)
+
+* Use of TileDB Embedded was upgraded to release 2.13.0 (#490)
+
+* Support for selecting dimensions by discrete points has been added (#491)
+
+## Bug Fixes
+
+* Accomodate possible zero sized allocation estimates for attributes (#482)
+
+* Detect missing columns in a write-attempt with partial data (#483)
+
+## Build and Test Systems
+
+* Update check-out action to version three suppressing a warning (#477)
+
+* Code Coverage reports are now generated and available at codecov.io (#484)
+
+* Small internal changes renaming two files and conditioning tests under two older releases (#485)
+
+
+# tiledb 0.16.0
+
+* This release of the R package builds against [TileDB 2.12.0](https://github.com/TileDB-Inc/TileDB/releases/tag/2.12.0), and has also been tested against earlier releases as well as the development version (#476).
+
+## Improvements
+
+* Several deprecated API entry points of TileDB Embedded are no longer used (#452, #453)
+
+* Support for DELETE queries has been added (requires TileDB Embedded 2.12.0 or later) (#455, #456)
+
+* Use of TileDB Embedded was upgraded to release 2.11.1, 2.11.2, and 2.11.3 (#460, #466, #474)
+
+* Support for XOR filters has been added (#472)
+
+* Support for deletion of fragments has been added (#473)
+
+* Use of TileDB Embedded was upgraded to release 2.12.0 (#475)
+
+## Bug Fixes
+
+* Treatment of character columns with missing values has been corrected (#454)
+
+* Accessing encrypted arrays has been reverted to the older API accessors (#458)
+
+* Int64 domain values in excess of int range are now expressed as integer64 objects (#465)
+
+## Build and Test Systems
+
+* Sparse matrix conversion used mainly in tests have been updated for version 1.4-2 of the Matrix packages (#457)
+
+* Support builds on the riskv64 platform by adding a missing link instruction (#459)
+
+* The test setup was tweaked to not trigger a spurious valgrind report from libcrypto (#461)
+
+* The test setup was tweaked to make a group comparison more resilient to ordering (#462)
+
+* The test setup was refined for two filter tests (#467, #468)
+
+* A parameterized test for the SCALE_FLOAT filter has been added (#469)
+
+* The test setup ensures that the per-session directory remains accessible (#470)
+
+* Continuous integration testing for Linux and macOS has been moved to GitHub Actions (#471)
+
+
+# tiledb 0.15.0
+
+* This release of the R package builds against [TileDB 2.11.0](https://github.com/TileDB-Inc/TileDB/releases/tag/2.11.0), and has also been tested against earlier releases as well as the development version (#451).
+
+## Improvements
+
+* Support for query conditions has been extended to dense arrays (#447)
+
+* Support for filter lists has extended to both the data.frame helper and the dimension object constructor (#448)
+
+* Use of TileDB Embedded was upgraded to release 2.11.0 (#449)
+
+## Bug Fixes
+
+* Small enhancements have been made to the test suite (#450)
+
+## Build and Test Systems
+
+* A small enhancement was made to the test system (#450)
+
+
+# tiledb 0.14.1
+
+* This release of the R package builds against [TileDB 2.10.2](https://github.com/TileDB-Inc/TileDB/releases/tag/2.10.2), and has also been tested against earlier releases as well as the development version.
+
+## Improvements
+
+* Use of TileDB Embedded was upgraded to release 2.10.2 (#443) following an earlier update to 2.10.1 (#434)
+
+* List columns are now supported in reading and writing of data frames by extending cell variable numbers beyond one (#438, #440)
+
+* Query condition support has been extended to more data types (#441)
+
+* The 'SCALE_FLOAT' filter for compression of floating-point attributes is now supported (with TileDB 2.11 or later) (#445)
+
+## Bug Fixes
+
+* Unit tests were refined with some additional conditioning on envuironment variable `CI` being present (#436)
+
+* An unnessary final argument has been dropped from a 'remove member' method (#437)
+
+## Build and Test Systems
+
+* The nightly `valgrind` check was updated to Ubuntu 22.04 (#435, #439, #442)
+
+
+# tiledb 0.14.0
+
+* This release of the R package builds against [TileDB 2.10.0](https://github.com/TileDB-Inc/TileDB/releases/tag/2.10.0), and has also been tested against earlier releases as well as the development version.
+
+## Improvements
+
+* Use of TileDB Embedded was upgraded to release 2.10.0 (#432) following earlier updates to 2.9.1 (#415), 2.9.2 (#419), 2.9.3 (#422), 2.9.4 (#427) and 2.9.5 (#430)
+
+* The BOOL data type is now supported (#416)
+
+* Query conditions support was extended with support for an OR operator (#417)
+
+* An incomplete query result is now signaled via a warning message (#420)
+
+* A helper function was added to check if an Array is open (#421)
+
+* Batched queries are now supported given the user the possibility to process larger-than-memory result sets in parts (#429)
+
+* Some internal object creation code was refactored (#431)
+
+## Bug Fixes
+
+* The `attr` setter for Attributes was corrected to support NA settings (#425)
+
+## Build and Test Systems
+
+* Filter compression tests are skipped on systems lacking AVX2 support (#418)
+
+* The build system now checks for C++17 support (#424)
+
+* The valgrind test was upgraded to release 2.9.3 and the 2.10 release branch (#426)
+
+* Tests for overlapping ranges have been added (#428)
+
+
+# tiledb 0.13.0
+
+* This release of the R package builds against [TileDB 2.9.0](https://github.com/TileDB-Inc/TileDB/releases/tag/2.9.0), and has also been tested against earlier releases as well as the development version.
+
+## Improvements
+
+* Support for groups has been added for TileDB 2.8 or later (#404)
+
+* The group member name retrieval can now also return the optional group member name (#399)
+
+* Allocation and creation of large string vector buffers was refactored (#400)
+
+* Support for dictionary encoding compression filters has been added for TileDB 2.9 or later (#404)
+
+* Support for Filestore functionality has been added for TileDB 2.9 or later (#410)
+
+* Support for BLOB datatypes has been added for TileDB 2.7 or later (#411)
+
+* Use of TileDB Embedded was upgraded to release 2.9.0 (#413) following earlier updates to 2.8.1 (#401), 2.8.2 (#403), 2.8.3 (#408)
+
+## Bug Fixes
+
+* Tests for filters have been made more robust (#407, #412)
+
+## Deprecations
+
+* The `check()` function is now deprecated and `schema_check()` is provided (#409)
+
+## Build and Test Systems
+
+* Nightly valgrind checks were updated to use current versions (#397, #402)
+
+* Following release of R 4.2.0, only ucrt builds are supported on Windows (#405)
+
+
+# tiledb 0.12.0
+
+* This release of the R package builds against [TileDB 2.8.0](https://github.com/TileDB-Inc/TileDB/releases/tag/2.8.0), and has also been tested against earlier releases as well as the development version.
+
+## Improvements
+
+* A schedule nightly continuous action now checks current and release-candidate branches of TileDB with the R package under valgrind (#387)
+
+* Support for Groups was added (#388, #392, #395)
+
+* All external pointers are now tagged and validated at compile- and run-time (#389)
+
+* A now-redundant group-creation method has been removed (#391)
+
+* Unit tests for group member addition were added and updated (#393)
+
+* Group members can also be added or removed by name (#395)
+
+* Use of TileDB Embedded was upgraded to release 2.8.0 (#396) following an earlier upgrades to 2.7.0 (#372) and 2.7.1 (#384)
+
+## Bug Fixes
+
+* The detection of TileDB headers and library is now more robust for cases where `pkg-config` is present but does not know about TileDB (#385)
+
+* The package documentation website was updated (#386)
+
+* A fallback was added for external pointer creation to support compilation without group support in TileDB Embedded (#390)
+
+* An incorrectly specified function call was corrected (#392)
+
+* The templated initialization for external pointer is now inlined to satisfy all compilers (#394)
+
+
+# tiledb 0.11.1
+
+* This release of the R package builds against [TileDB 2.6.4](https://github.com/TileDB-Inc/TileDB/releases/tag/2.6.4), but has also been tested against earlier releases, and the development version.
+
+## Improvements
+
+* Use of TileDB Embedded was upgraded to release 2.6.4 (#384) following an earlier upgrade to 2.6.2 (#359)
+
+* Creations of arrays from `data.frame` objects now supports a `mode=` argument with values 'ingest', 'schema_only', and 'append' (#360)
+
+* Some unit test and continuous integration code was refactored (#364, #375)
+
+* Finalizer use is now simplified taking advantage of an [Rcpp](https://cran.r-project.org/package=Rcpp) change (#366)
+
+* A new option `strings\_as\_factors` was added for `data.frame` retrieval (#367)
+
+* The [arrow](https://cran.r-project.org/package=arrow) C-level interface now uses external pointer objects following Arrow 7.0 (#368)
+
+* Support for memory limits has been extended, and partial reads are using with iterations to complete (#371)
+
+* Fragment info reading now account for the `__fragments` object (#373)
+
+* A nightly test under [valgrind](https://valgrind.org/) has been added; results are reported to slack (#382, #383)
+
+* UTF-8 string in metadata are now supported (#377)
+
+* Attribute-less arrays can now be created, written, and read (#378), also via higher-level accessors (#379)
+
+* A plugin for [Rcpp](https://cran.r-project.org/package=Rcpp) has been added (#380)
+
+## Bug Fixes
+
+* Array status is now checked before closing (#362)
+
+* Signed and unsigned `int64` dimensions are now mapped correctly from 'square-bracket indexing', and the third dimension is recognised (#365)
+
+* Domain information could overflow `int64_t` if an unsigned value was used, this now flips to `double` (#370)
+
+* Unit tests for consolidation and vacuuming were update to account for `__fragments` too (#374)
+
+* A unit test was corrected to ensure logical expressions are of length one (#381)
+
+## Documentation
+
+* A new vignette on data ingestion has been added (#357)
+
+* A new vignette on installation options has been added (#358)
+
+* The vignettes are now built using package [simplermarkdown](https://cran.r-project.org/package=simplermarkdown) (#361)
+
+* Help pages were polished (#369)
+
+## Deprecations
+
+* The `tiledb_dense` and `tiledb_sparse` functions which were deprecated in February 2021 have been removed after a twelve-month grace period.
+
+
+# tiledb 0.11.0
+
+* This release of the R package builds against [TileDB 2.6.1](https://github.com/TileDB-Inc/TileDB/releases/tag/2.6.1), but has also been tested against previous releases, and the development version.
+
+## Improvements
+
+* Use of TileDB Embedded was upgraded to release 2.6.1 (#354) following an earlier upgrade to 2.6.0 (#340)
+
+* A cell value getter for dimension was added (#341)
+
+* Getter and setter functions for validity filter lists have been added (#349)
+
+* Memory budget use has been refined via a configurable budget setting (#346, #350)
+
+* A context getter function was added for query objects (#351)
+
+* The schema display functionality was refactored and extended (#342, #343, #344, #345, #352, #355)
+
+* Use of `TILEDB_CHAR` is deprecated in favor of `TILEDB_STRING_ASCII` (#353)
+
+## Bug Fixes
+
+* A `.nojekyll` file was added to prevent unnecessary GitHub Pages builds (#339)
+
+* A getter for fill values is only called with TileDB 2.1.0 or later (#347)
+
+* GitHub Actions on Windows no longer install `qpdf` which was never used (#348)
+
+
 # tiledb 0.10.2
 
 * This release of the R package builds against [TileDB 2.5.3](https://github.com/TileDB-Inc/TileDB/releases/tag/2.5.3), but has been tested against previous releases, and the development version.

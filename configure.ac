@@ -2,7 +2,7 @@
 
 ##  MIT License
 ##
-##  Copyright (c) 2017-2021 TileDB Inc.
+##  Copyright (c) 2017-2024 TileDB Inc.
 ##
 ##  Permission is hereby granted, free of charge, to any person obtaining a copy
 ##  of this software and associated documentation files (the "Software"), to deal
@@ -24,7 +24,7 @@
 
 ## require at least autoconf 2.69
 AC_PREREQ([2.69])
-AC_INIT([TileDB-R],[0.10.0])
+AC_INIT([TileDB-R],[0.28.0])
 
 ## -- Part 1: Setup -------------------------------------------------------------
 ##
@@ -43,9 +43,13 @@ CXXFLAGS=`"${R_HOME}/bin/R" CMD config CXXFLAGS`
 CPPFLAGS=`"${R_HOME}/bin/R" CMD config CPPFLAGS`
 CXX11FLAGS=`"${R_HOME}/bin/R" CMD config CXX11FLAGS`
 CXX17FLAGS=`"${R_HOME}/bin/R" CMD config CXX17FLAGS`
+DYLIB_EXT=`"${R_HOME}/bin/R" CMD config DYLIB_EXT`
+
 AC_LANG(C++)
 AC_REQUIRE_CPP
 AC_PROG_CXX
+m4_include([tools/m4/ax_cxx_compile_stdcxx.m4])
+AX_CXX_COMPILE_STDCXX([17])
 
 ## Can we use pkg-config?
 AC_PATH_PROG(have_pkg_config, pkg-config, no)
@@ -71,16 +75,28 @@ if test x"${have_pkg_config}" = x"no"; then
     AC_SUBST([TILEDB_INCLUDE], "")
     AC_SUBST([TILEDB_LIBS], "-ltiledb")
     AC_SUBST([TILEDB_RPATH], "")
+    ## For TileDB older than 2.15 we use this to silence a deprecation warning
+    AC_SUBST([TILEDB_SILENT_BUILD], "-DTILEDB_SILENT_BUILD")
 fi
 
 ## If we have pkg-config, use it to test minimal version
 if test x"${have_pkg_config}" != x"no"; then
     AC_MSG_CHECKING([for pkg-config checking TileDB version])
-    if pkg-config --atleast-version=2.0.0 tiledb; then
-        AC_MSG_RESULT([>= 2.0.0])
+    if pkg-config --atleast-version=2.7.0 tiledb; then
+        AC_MSG_RESULT([>= 2.7.0])
     else
         AC_MSG_RESULT([insufficient])
-        AC_MSG_ERROR([TileDB Embedded 2.0.0 or later is required.])
+        AC_MSG_ERROR([TileDB Embedded 2.7.0 or later is required.])
+    fi
+    AC_MSG_CHECKING([for pkg-config checking TileDB deprecation silencer])
+    if pkg-config --atleast-version=2.15.0 tiledb; then
+        ## For TileDB 2.15 or newer are fine
+        AC_MSG_RESULT([not required])
+        AC_SUBST([TILEDB_SILENT_BUILD], "")
+    else
+        ## For TileDB older than 2.15 we use this to silence a deprecation warning
+        AC_MSG_RESULT([enabled])
+        AC_SUBST([TILEDB_SILENT_BUILD], "-DTILEDB_SILENT_BUILD")
     fi
 fi
 
@@ -97,7 +113,8 @@ machine=`uname -m`
 ## -- Part 2: User preferences --------------------------------------------------
 ##
 ## Allow forced build override, value of 'yes' or 'no' set in enable_building variable
-## (and sets by autoconf standards the 'enable_building' variable to 'yes' or 'no')
+## (and sets by autoconf standards the 'enable_building' variable to 'yes' if selected
+## otherwise the default is "" ie empty string and not 'no')
 AC_ARG_ENABLE([building],
           AS_HELP_STRING([--enable-building],[build TileDB library instead of downloading prebuilt]))
           #[building="${enable_building}"
@@ -126,16 +143,18 @@ fi
 ## (and sets by autconf standards the 'with_download' variable)
 AC_ARG_WITH([download],
             AS_HELP_STRING([--with-download=URL],[URL override for TileDB library to download]),
-            [TILEDB_LIB_URL="${with_download}"],
+            [TILEDB_LIB_URL="${with_download}"
+	     enable_building="yes"],
             [])
 
 ## Sanity checks
 if test ! -z "${with_tiledb}" -a x"${with_download}" = x"yes"; then
     AC_MSG_ERROR([Conflicting choice of preinstalled TileDB and enabling download of TileDB library.])
 fi
-if test ! -z "${with_download}" -a x"${enable_building}" = x"yes"; then
-    AC_MSG_ERROR([Conflicting choice of enabling download of TileDB and enabling building of TileDB.])
-fi
+## -- We allow this now as --with-download implies enable_building
+##if test ! -z "${with_download}" -a x"${enable_building}" = x"yes"; then
+##    AC_MSG_ERROR([Conflicting choice of enabling download of TileDB and enabling building of TileDB.])
+##fi
 AC_SUBST([TILEDB_LIB_URL], "${with_download}")
 
 ## Setup
@@ -144,11 +163,32 @@ origLDFLAGS="${LDFLAGS}"
 CPPFLAGS="${origCPPFLAGS} ${TILEDB_INCLUDE}"
 LDFLAGS="${origLDFLAGS} ${TILEDB_LIBS} ${TILEDB_RPATH}"
 
-## Take care of 10.14 requirement for Intel macOS
-if test x"${uname}" = x"Darwin" -a x"${machine}" = x"x86_64"; then
-    AC_MSG_CHECKING([for Darwin x86_64 use minimum version override])
-    CXX17_MACOS="-mmacosx-version-min=10.14"
+## Take care of 11 (aka 'Big Sur') requirement for macOS
+if test x"${uname}" = x"Darwin"; then
+    AC_MSG_CHECKING([for Darwin use minimum version override])
+    CXX17_MACOS="-mmacosx-version-min=11"
     AC_MSG_RESULT([${CXX17_MACOS}])
+    ## Obscure but important override: we may have gotten .dylib, but we prefer .so -- unless it is Conda
+    if test x"${CONDA_BUILD}" != x"1"; then
+       DYLIB_EXT=".so"
+    fi
+fi
+
+## Take care of riscv64 machines and need for -latomic
+if test x"${machine}" = x"riscv64"; then
+    AC_MSG_CHECKING([for riscv64 linker adjustment])
+    TILEDB_LIBS="${TILEDB_LIBS} -latomic"
+    AC_MSG_RESULT([${TILEDB_LIBS}])
+fi
+
+## Take care of need for 'filesystem' (C++17, and g++ 8.*-ish or newer)
+if test x"${uname}" = x"Linux"; then
+   AC_CHECK_HEADER([filesystem], [have_filesystem="yes"], [have_filesystem="no"])
+   if test x"${have_filesystem}" = x"no"; then
+       AC_MSG_CHECKING([use of filesystem header])
+       FILESYSTEM_HEADER_MISSSING="-DLACKING_FILESYSTEM"
+       AC_MSG_RESULT([${FILESYSTEM_HEADER_MISSSING}])
+   fi
 fi
 
 
@@ -160,7 +200,7 @@ checkTileDBViaHeader="yes"
 ## Use either one of the tests
 if test x"${checkTileDBViaHeader}" = x"yes"; then
     ## simply check for tiledb C-api header
-    AC_CHECK_HEADER([tiledb/tiledb.h], [have_tiledb="yes"], [have_tiledb="no"])
+    AC_CHECK_HEADER([tiledb/tiledb], [have_tiledb="yes"], [have_tiledb="no"])
 else
     ## formally check we can build
     AC_MSG_CHECKING([compilation with TileDB])
@@ -175,6 +215,8 @@ fi
 ## to test one can force some selections here
 #have_tiledb="no"
 #enable_building="no"
+#echo "have_tiledb=${have_tiledb}"
+#echo "enable_building=${enable_building}"
 if test x"${have_tiledb}" = x"no"; then
 
     ## case one: build is selected (or forced) so try building TileDB
@@ -184,13 +226,26 @@ if test x"${have_tiledb}" = x"no"; then
         if test x"${have_cmake}" != x"yes"; then
             AC_MSG_ERROR([please install 'cmake'])
         fi
+        AC_DEFUN([AC_PROG_CURL], [AC_CHECK_PROG(have_curl,curl,yes)])
+        AC_PROG_CURL
+        if test x"${have_curl}" != x"yes"; then
+            AC_MSG_ERROR([please install 'curl'])
+        fi
         AC_DEFUN([AC_PROG_GIT], [AC_CHECK_PROG(have_git,git,yes)])
         AC_PROG_GIT
         if test x"${have_git}" != x"yes"; then
             AC_MSG_ERROR([please install 'git'])
         fi
         AC_MSG_RESULT([installing TileDB via building locally...])
-        tools/buildTileDB.sh
+        if test x"${TILEDB_LIB_URL}" != x; then
+            #AC_MSG_RESULT([using ${TILEDB_LIB_URL} ...])
+            ## Important: unset LDFLAGS to not leak -ltiledb from pkg-config
+            LDFLAGS="${origLDFLAGS}" tools/buildTileDB.sh ${TILEDB_LIB_URL}
+        else
+            #AC_MSG_RESULT([using default url ...])
+            ## Important: unset LDFLAGS to not leak -ltiledb from pkg-config
+            LDFLAGS="${origLDFLAGS}" tools/buildTileDB.sh default
+        fi
 
     ## case two: download considered
     ##   - on macOS or Linux a 'fast and slim' build with external (pinned) library
@@ -198,14 +253,8 @@ if test x"${have_tiledb}" = x"no"; then
     ##   - otherwise error
     ##   - but also check we're on x86_64 before downloading
     else
-        ## download URL given by user
-        if test x"${TILEDB_LIB_URL}" != x; then
-            AC_MSG_RESULT([downloading given TileDB library...])
-            ## we use the source download which takes this argument if one given
-            ## and downloads as the same file name
-            cd inst && ../tools/fetchTileDB.sh url ${TILEDB_LIB_URL} && cd ..
 
-        elif test x"${machine}" = x"x86_64" && test x"${uname}" = x"Linux" -o x"${uname}" = x"Darwin"; then
+        if test x"${machine}" = x"x86_64" && test x"${uname}" = x"Linux" -o x"${uname}" = x"Darwin"; then
             AC_MSG_RESULT([downloading x86_64 TileDB library...])
 
             osrel=`tools/getOsRelease.sh`
@@ -234,7 +283,7 @@ if test x"${have_tiledb}" = x"no"; then
     #AC_SUBST([TILEDB_INCLUDE], "-Itiledb-inst/include")
     AC_MSG_RESULT([using inst/tiledb/{lib,include}])
     RPATH=" -Wl,-rpath,'\$\$ORIGIN/../tiledb/lib'"
-    AC_SUBST([TILEDB_INCLUDE], "-I../inst/tiledb/include ${CXX17_MACOS}")
+    AC_SUBST([TILEDB_INCLUDE], "-I../inst/tiledb/include ${CXX17_MACOS} ${FILESYSTEM_HEADER_MISSSING}")
     AC_SUBST([TILEDB_LIBS], "-ltiledb -L../inst/tiledb/lib")
     AC_SUBST([TILEDB_RPATH], "${RPATH}")
 
@@ -243,7 +292,10 @@ if test x"${have_tiledb}" = x"no"; then
 
 fi
 
+
 AC_SUBST([CXX17_MACOS])
+AC_SUBST([FILESYSTEM_HEADER_MISSSING])
+AC_SUBST([DYLIB_EXT])
 
 AC_CONFIG_FILES([src/Makevars])
 AC_OUTPUT

@@ -1,0 +1,172 @@
+url: https://tiledb-inc.github.io/TileDB-R/
+
+template:
+  bootstrap: 5
+
+articles:
+- title: TileDB R Introduction
+  navbar: Introduction
+  contents:
+  - introduction
+  - installation-options
+- title: TileDB R API
+  navbar: API
+  contents:
+  - documentation
+- title: Working with SQL
+  navbar: SQL
+  contents:
+  - data-ingestion-from-sql
+  - tiledb-mariadb-examples
+
+reference:
+- title: Ctx
+  contents:
+  - starts_with("tiledb_ctx")
+  - starts_with("tiledb_is_supported_fs")
+  - starts_with("tiledb_ctx_set_tag")
+  - ends_with("_context")
+  - ends_with("tiledb_ctx-method")
+  - matches("tiledb_get_context")
+  - matches("tiledb_set_context")
+- title: Config
+  contents:
+  - starts_with("tiledb_config")
+  - starts_with("as.vector.tiledb_config")
+  - starts_with("as.data.frame.tiledb_config")
+  - ends_with("tiledb_config-method")
+  - matches(",tiledb_config,ANY")
+  - matches("save_allocation_size_preference")
+- title: Array
+  contents:
+  - starts_with("tiledb_array_create")
+  - starts_with("tiledb_dense")
+  - starts_with("tiledb_sparse")
+  - matches("tiledb_array")
+  - matches(",tiledb_dense")
+  - matches(",tiledb_sparse")
+  - matches("tiledb_subarray")
+  - matches("save_return_as_preference")
+  - matches("tiledb_datatype_R_type")
+- title: ArraySchema
+  contents:
+  - starts_with("tiledb_array_schema")
+  - starts_with("allows_dups")
+  - matches("r_to_tiledb_type")
+  - matches("tiledb_schema_get_names")
+  - matches("tiledb_schema_get_types")
+  - matches("tiledb_schema_set_names")
+  - matches("tiledb_schema_get_dim_attr_status")
+  - matches("schema,character-method")
+  - matches("tiledb_schema_object")
+  - matches("describe")
+- title: Attribute
+  contents:
+  - starts_with("tiledb_attr")
+  - starts_with("attr")
+  - ends_with("tiledb_attr-method")
+  - matches("has_attribute")
+- title: Filter
+  contents:
+  - starts_with("tiledb_filter")
+  - starts_with("filter")
+  - matches("show,tiledb_filter-method")
+- title: FilterList
+  contents:
+  - matches("tiledb_filter_list")
+  - starts_with("filter_list")
+  - ends_with("filter_list-method")
+- title: Domain
+  contents:
+  - starts_with("tiledb_domain")
+  - starts_with("tiledb_ndim")
+  - ends_with("tiledb_domain-method")
+- title: Dim
+  contents:
+  - starts_with("tiledb_dim")
+  - starts_with("dim")
+  - ends_with("tiledb_dim-method")
+  - ends_with("tiledb_dim")
+- title: Query
+  desc: query object functions
+  contents:
+  - starts_with("tiledb_query")
+  - matches("parse_query_condition")
+  - matches("tiledb_get_query_status")
+  - matches("tiledb_error_message")
+  - matches("completedBatched")
+  - matches("createBatched")
+  - matches("fetchBatched")
+  - matches("statusBatched")
+- title: Group
+  contents:
+  - starts_with("tiledb_group")
+  - matches("show,tiledb_group-method")
+- title: Object
+  desc: object management functions
+  contents:
+  - starts_with("tiledb_object")
+  - matches("is.anonymous")
+  - matches("array_consolidate")
+  - matches("array_vacuum")
+- title: MetaData
+  desc: arrray metadata functionality
+  contents:
+  - ends_with("metadata")
+- title: Stats
+  desc:  performance stat collection functions
+  contents:
+  - starts_with("tiledb_stats")
+- title: VFS
+  desc: virtual file system functions
+  contents:
+  - starts_with("tiledb_vfs")
+  - matches("tiledb_get_vfs")
+  - matches("tiledb_set_vfs")
+  - matches("vfs_file")
+- title: Filestore
+  desc: filestore functionality
+  contents:
+  - starts_with("tiledb_filestore")
+- title: Fragment
+  contents:
+  - starts_with("tiledb_fragment")
+- title: DataFrame
+  desc:  data.frame functionality functions
+  contents:
+  - matches("as_data_frame")
+  - matches("fromDataFrame")
+  - starts_with("return.data.frame")
+  - matches("data.frame")
+- title: SparseMatrix
+  desc:  matrix and sparse matrices helper functions
+  contents:
+  - matches("fromMatrix")
+  - matches("fromSparseMatrix")
+- title: Arrow
+  desc: interface to Arrow in-memory representation
+  contents:
+  - matches("tiledb_arrow_array_ptr")
+- title: Package
+  desc: package and version information
+  contents:
+  - starts_with("tiledb_version")
+  - matches("tiledb-package")
+  - matches("limitTileDBCores")
+- title: Enumeration
+  desc: support for factor and ordered
+  contents:
+  - matches("enumeration")
+- title: CurrentDomain
+  desc: support for current domain of sparse array
+  contents:
+  - matches("current_domain")
+  - matches("ndrectangle")
+
+authors:
+  TileDB, Inc.:
+    href: "https://tiledb.com"
+    html: "<img src='https://github.com/TileDB-Inc/TileDB/raw/dev/doc/source/_static/tiledb-logo_color_no_margin_@4x.png' height=24>"
+
+news:
+  cran_dates: false

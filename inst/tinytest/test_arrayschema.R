@@ -1,8 +1,6 @@
 library(tinytest)
 library(tiledb)
 
-isOldWindows <- Sys.info()[["sysname"]] == "Windows" && grepl('Windows Server 2008', osVersion)
-
 ctx <- tiledb_ctx(limitTileDBCores())
 
 if (get_return_as_preference() != "asis") set_return_as_preference("asis") 		# baseline value
@@ -97,36 +95,43 @@ expect_error(tiledb:::libtiledb_array_schema_set_capacity(sch@ptr, -10))
 
 
 #test_that("tiledb_array_schema created with encryption",  {
-if (!(isOldWindows)) {
-  dir.create(uri <- tempfile())
-  key <- "0123456789abcdeF0123456789abcdeF"
+dir.create(uri <- tempfile())
+key <- "0123456789abcdeF0123456789abcdeF"
 
-  dom <- tiledb_domain(dims = c(tiledb_dim("rows", c(1L, 4L), 4L, "INT32"),
-                                tiledb_dim("cols", c(1L, 4L), 4L, "INT32")))
-  schema <- tiledb_array_schema(dom, attrs = c(tiledb_attr("a", type = "INT32")))
+oldconfig <- config <- tiledb_config()
+config <- tiledb_config()
+config["sm.encryption_type"] <- "AES_256_GCM";
+config["sm.encryption_key"] <- key
+ctx <- tiledb_ctx(config)
 
-  ##tiledb_array_create_with_key(uri, schema, key)
-  ## for now calling into function
-  tiledb:::libtiledb_array_create_with_key(uri, schema@ptr, key)
+## quick and direct test write with encryption
+expect_silent( fromDataFrame(palmerpenguins::penguins, uri) )
 
-  ctx <- tiledb_ctx()
-  arrptr <- tiledb:::libtiledb_array_open_with_key(ctx@ptr, uri, "WRITE", key)
-  A <- new("tiledb_dense", ctx=ctx, uri=uri, as.data.frame=FALSE, ptr=arrptr)
+## check access, here just schema return and number of rows when read
+expect_true(is(schema(uri), "tiledb_array_schema"))
+expect_equal(nrow(tiledb_array(uri, return_as="data.frame")[]), 344)
 
-  expect_true(is(A, "tiledb_dense"))
-  ##expect_true(is(schema(A), "tiledb_dense"))
-  ## can't yet read / write as scheme getter not generalized for encryption
+unlink(uri, recursive=TRUE)
 
-  unlink(uri, recursive=TRUE)
-}
+## previous test
+dom <- tiledb_domain(dims = c(tiledb_dim("rows", c(1L, 4L), 4L, "INT32"),
+                              tiledb_dim("cols", c(1L, 4L), 4L, "INT32")))
+schema <- tiledb_array_schema(dom, attrs = c(tiledb_attr("a", type = "INT32")))
+tiledb_array_create(uri, schema, key)
+expect_true(is(schema(uri), "tiledb_array_schema"))
+
+unlink(uri, recursive=TRUE)
+
+ctx <- tiledb_ctx(oldconfig)  # reset to no encryption via previous config
+
+
 #})
 
 #test_that("tiledb_array_schema dups setter/getter",  {
 dom <- tiledb_domain(dims = c(tiledb_dim("rows", c(1L, 4L), 4L, "INT32"),
                               tiledb_dim("cols", c(1L, 4L), 4L, "INT32")))
-sch <- tiledb_array_schema(dom,
-                           attrs = c(tiledb_attr("a", type = "INT32")),
-                           sparse = TRUE)
+attr <- tiledb_attr("a", type = "INT32")
+sch <- tiledb_array_schema(dom, attrs = attr, sparse = TRUE)
 
 ## false by default
 expect_false(allows_dups(sch))
@@ -135,3 +140,13 @@ expect_false(allows_dups(sch))
 allows_dups(sch) <- TRUE
 expect_true(allows_dups(sch))
 #})
+
+
+## current domain
+if (tiledb_version(TRUE) < "2.26.0") exit_file("Needs TileDB 2.26.* or later")
+expect_error(tiledb_array_schema_get_current_domain(dom))           # wrong object
+expect_silent(cd <- tiledb_array_schema_get_current_domain(sch))
+expect_silent(tiledb_array_schema_set_current_domain(sch, cd))
+
+dsch <- tiledb_array_schema(dom, attrs = attr, sparse = FALSE)
+expect_error(tiledb_array_schema_set_current_domain(dsch, cd)) 		# not for dense

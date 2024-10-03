@@ -1,6 +1,6 @@
 #  MIT License
 #
-#  Copyright (c) 2017-2021 TileDB Inc.
+#  Copyright (c) 2017-2022 TileDB Inc.
 #
 #  Permission is hereby granted, free of charge, to any person obtaining a copy
 #  of this software and associated documentation files (the "Software"), to deal
@@ -33,16 +33,17 @@ tiledb_dim.from_ptr <- function(ptr) {
   return(new("tiledb_dim", ptr = ptr))
 }
 
-#' Contructs a `tiledb_dim` object
+#' Constructs a `tiledb_dim` object
 #'
 #' @param name The dimension name / label string.  This argument is required.
-#' @param domain The dimension (inclusive) domain. The dimension’s domain is
-#' defined by a (lower bound, upper bound) vector, and is usually either of
-#' type \code{integer} or \code{double} (i.e. \code{numeric}). For type,
-#' \code{ASCII} \code{NULL} is expected.
-#' @param tile The tile dimension tile extent. For type,
-#' \code{ASCII} \code{NULL} is expected.
-#' @param type The dimension TileDB datatype string
+#' @param domain The dimension (inclusive) domain. The domain of a dimension
+#' is defined by a (lower bound, upper bound) vector. For type \code{ASCII},
+#' \code{NULL} is expected.
+#' @param tile The tile dimension tile extent. For type
+#' \code{ASCII}, \code{NULL} is expected.
+#' @param type The dimension TileDB datatype string.
+#' @param filter_list An optional \code{tiledb_filter_list} object, default
+#' is no filter
 #' @param ctx tiledb_ctx object (optional)
 #' @return `tiledb_dim` object
 #' @examples
@@ -51,66 +52,93 @@ tiledb_dim.from_ptr <- function(ptr) {
 #'
 #' @importFrom methods new
 #' @export tiledb_dim
-tiledb_dim <- function(name, domain, tile, type, ctx = tiledb_get_context()) {
-  stopifnot(`Argument 'name' must be supplied when creating a dimension object` = !missing(name),
-            `Argument 'name' must be a scalar string when creating a dimension object` = is.scalar(name, "character"),
-            `Argument 'ctx' must be a tiledb_ctx object` = is(ctx, "tiledb_ctx"))
-  if (missing(type)) {
-    type <- ifelse(is.integer(domain), "INT32", "FLOAT64")
-  } else if (!type %in% c("INT8", "INT16", "INT32", "INT64",
-                          "UINT8", "UINT16", "UINT32", "UINT64",
-                          "FLOAT32", "FLOAT64",
-                          "DATETIME_YEAR","DATETIME_MONTH","DATETIME_WEEK","DATETIME_DAY",
-                          "DATETIME_HR", "DATETIME_MIN", "DATETIME_SEC",
-                          "DATETIME_MS", "DATETIME_US", "DATETIME_NS",
-                          "DATETIME_PS", "DATETIME_FS", "DATETIME_AS",
-                          "ASCII")) {
-    stop("type argument must be '(U)INT{8,16,32,64}', 'FLOAT{32,64}', 'ASCII', or a supported 'DATETIME_*' type.", call.=FALSE)
-  }
-  if (!type %in% c("ASCII")) {
-    if ((typeof(domain) != "integer" && typeof(domain) != "double") || (length(domain) != 2)) {
-      stop("domain must be an integer or double vector of length 2")
+tiledb_dim <- function(name, domain, tile, type,
+                       filter_list = tiledb_filter_list(), ctx = tiledb_get_context()) {
+    stopifnot("Argument 'name' must be supplied when creating a dimension object" = !missing(name),
+              "Argument 'name' must be a scalar string when creating a dimension object" = is.scalar(name, "character"),
+              "Argument 'ctx' must be a tiledb_ctx object" = is(ctx, "tiledb_ctx"))
+    if (missing(type)) {
+        type <- ifelse(is.integer(domain), "INT32", "FLOAT64")
+    } else if (!type %in% c("INT8", "INT16", "INT32", "INT64",
+                            "UINT8", "UINT16", "UINT32", "UINT64",
+                            "FLOAT32", "FLOAT64",
+                            "DATETIME_YEAR","DATETIME_MONTH","DATETIME_WEEK","DATETIME_DAY",
+                            "DATETIME_HR", "DATETIME_MIN", "DATETIME_SEC",
+                            "DATETIME_MS", "DATETIME_US", "DATETIME_NS",
+                            "DATETIME_PS", "DATETIME_FS", "DATETIME_AS",
+                            "ASCII")) {
+        stop("type argument must be '(U)INT{8,16,32,64}', 'FLOAT{32,64}', 'ASCII', or a supported 'DATETIME_*' type.", call.=FALSE)
     }
-  }
-  if (inherits(domain, "nanotime") ||   # not integer64 as we want the conversion only for datetimes
-      type %in% c("DATETIME_PS",        # but also for high precision times we cannot fit into NS
-                  "DATETIME_FS",
-                  "DATETIME_AS")) {
-      w <- getOption("warn")            # store warning levels
-      options("warn" = -1)              # suppress warnings
-      domain <- as.numeric(domain)      # for this lossy conversion
-      options("warn" = w)               # restore warning levels
-  }
-  # by default, tile extent should span the whole domain
-  if (missing(tile)) {
-    if (is.integer(domain)) {
-      tile <- (domain[2L] - domain[1L]) + 1L
-    } else {
-      tile <- (domain[2L] - domain[1L])
+
+    if (!type %in% c("ASCII")) {
+        if ((typeof(domain) != "integer" && typeof(domain) != "double") || (length(domain) != 2)) {
+            stop("The 'domain' argument must be an integer or double vector of length 2")
+        }
     }
-  }
-  ptr <- libtiledb_dim(ctx@ptr, name, type, domain, tile)
-  return(new("tiledb_dim", ptr = ptr))
+
+    ## if type is (U)INT64 then convert domain and tile arguments so
+    ## that users are not forced to submit as int64
+    if (type %in% c("INT64", "UINT64")) {
+        if (!inherits(domain, "integer64")) {
+            domain <- bit64::as.integer64(domain)
+        }
+        if (!inherits(tile, "integer64")) {
+            tile <- bit64::as.integer64(domain)
+        }
+    }
+
+    if (inherits(domain, "nanotime") ||   # not integer64 as we want the conversion only for datetimes
+        type %in% c("DATETIME_PS",        # but also for high precision times we cannot fit into NS
+                    "DATETIME_FS",
+                    "DATETIME_AS")) {
+        w <- getOption("warn")            # store warning levels
+        options("warn" = -1)              # suppress warnings
+        domain <- as.numeric(domain)      # for this lossy conversion
+        options("warn" = w)               # restore warning levels
+    }
+
+    ## by default, tile extent should span the whole domain
+    if (missing(tile)) {
+        if (is.integer(domain)) {
+            tile <- (domain[2L] - domain[1L]) + 1L
+        } else {
+            tile <- (domain[2L] - domain[1L])
+        }
+    }
+    ptr <- libtiledb_dim(ctx@ptr, name, type, domain, tile)
+    libtiledb_dimension_set_filter_list(ptr, filter_list@ptr)
+    return(new("tiledb_dim", ptr = ptr))
+}
+
+
+# internal function returning text use here and in other higher-level show() methods
+.as_text_dimension <- function(object) {
+    cells <- cell_val_num(object)
+    fl <- filter_list(object)
+    nf <- nfilters(fl)
+    tp <- datatype(object)
+    dm <- if (is.na(cells)) "" else paste0(domain(object), if (grepl("INT", tp)) "L" else "", collape="")
+    ex <- if (is.na(cells)) "" else paste0(tile(object), if (grepl("INT", tp)) "L" else "", collape="")
+    txt <- paste0("tiledb_dim(name=\"", name(object), "\", ",
+                  "domain=c(", if (is.na(cells)) "NULL,NULL"
+                               else paste0(dm, collapse=","), "), ",
+                  "tile=", if (is.na(cells)) "NULL" else ex, ", ",
+                  "type=\"", datatype(object), "\"",
+                  if (nf == 0) ")" else ", ")
+    if (nf > 0) {
+        txt <- paste0(txt, "filter_list=", .as_text_filter_list(fl), ")")
+    }
+    txt
 }
 
 #' Prints a dimension object
 #'
-#' @param object An array_schema object
+#' @param object A dimension object
 #' @export
-setMethod("show", signature(object = "tiledb_dim"),
+setMethod("show",
+          signature(object = "tiledb_dim"),
           definition = function(object) {
-    cat("### Dimension ###\n")
-    cat("- Name:", name(object), "\n")
-    cat("- Type:", datatype(object), "\n")
-    cells <- cell_val_num(object)
-    cat("- Cell val num:", cells, "\n")
-    cat("- Domain:", if (is.na(cells)) "(null,null)"
-                     else paste0("[", paste0(domain(object), collapse=","), "]"), "\n")
-    cat("- Tile extent:", if (is.na(cells)) "(null)" else dim(object), "\n")
-    fl <- filter_list(object)
-    cat("- Filters: ", nfilters(fl), "\n", sep="")
-    show(fl)
-    cat("\n")
+    cat(.as_text_dimension(object), "\n")
 })
 
 #' Return the `tiledb_dim` name
@@ -211,7 +239,7 @@ setMethod("tiledb_ndim", "tiledb_dim",
 #'
 #' @export
 is.anonymous.tiledb_dim <- function(object) {
-  stopifnot(`Argument 'object' must a tiledb_dim object` = is(object, "tiledb_dim"))
+  stopifnot(`Argument 'object' must be a tiledb_dim object` = is(object, "tiledb_dim"))
   name <- libtiledb_dim_get_name(object@ptr)
   return(nchar(name) == 0)
 }

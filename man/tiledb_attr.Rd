@@ -2,7 +2,7 @@
 % Please edit documentation in R/Attribute.R
 \name{tiledb_attr}
 \alias{tiledb_attr}
-\title{Contructs a \code{tiledb_attr} object}
+\title{Constructs a \code{tiledb_attr} object}
 \usage{
 tiledb_attr(
   name,
@@ -10,6 +10,7 @@ tiledb_attr(
   filter_list = tiledb_filter_list(),
   ncells = 1,
   nullable = FALSE,
+  enumeration = NULL,
   ctx = tiledb_get_context()
 )
 }
@@ -19,12 +20,14 @@ tiledb_attr(
 \item{type}{The tiledb_attr TileDB datatype string; if missing the user is alerted
 that this is a \emph{required} parameter.}
 
-\item{filter_list}{(default filter_list("NONE")) The tiledb_attr filter_list}
+\item{filter_list}{(default filter_list("NONE")) An optional tiledb_filter_list object}
 
 \item{ncells}{(default 1) The number of cells, use \code{NA} to signal variable length}
 
 \item{nullable}{(default FALSE) A logical switch whether the attribute can have missing
 values}
+
+\item{enumeration}{(default NULL) A character vector of dictionary values}
 
 \item{ctx}{tiledb_ctx object (optional)}
 }
@@ -32,7 +35,7 @@ values}
 \code{tiledb_dim} object
 }
 \description{
-Contructs a \code{tiledb_attr} object
+Constructs a \code{tiledb_attr} object
 }
 \examples{
 \dontshow{ctx <- tiledb_ctx(limitTileDBCores())}

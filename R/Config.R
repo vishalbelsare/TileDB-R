@@ -1,6 +1,6 @@
 #  MIT License
 #
-#  Copyright (c) 2017-2021 TileDB Inc.
+#  Copyright (c) 2017-2023 TileDB Inc.
 #
 #  Permission is hereby granted, free of charge, to any person obtaining a copy
 #  of this software and associated documentation files (the "Software"), to deal
@@ -55,7 +55,8 @@ tiledb_config.from_ptr <- function(ptr) {
 #' @importFrom methods new
 #' @export tiledb_config
 tiledb_config <- function(config = NA_character_) {
-  if (!is.na(config)) {
+  config <- config[!is.na(x = config)]
+  if (length(x = config)) {
     stopifnot(`If given, the 'config' argument must be a name, value character vector` = is.character(config) && !is.null(names(config)))
     ptr <- libtiledb_config(config)
   } else {
@@ -233,15 +234,8 @@ limitTileDBCores <- function(ncores, verbose=FALSE) {
   }
   stopifnot(`The 'ncores' argument must be numeric or character` = is.numeric(ncores) || is.character(ncores))
   cfg <- tiledb_config()
-  if (tiledb_version(TRUE) >= "2.1.0") {
-    cfg["sm.compute_concurrency_level"] <- ncores
-    cfg["sm.io_concurrency_level"] <- ncores
-  } else {
-    cfg["sm.num_reader_threads"] <- ncores
-    cfg["sm.num_writer_threads"] <- ncores
-    cfg["vfs.file.max_parallel_ops"] <- ncores
-    cfg["vfs.num_threads"] <- ncores
-  }
+  cfg["sm.compute_concurrency_level"] <- ncores
+  cfg["sm.io_concurrency_level"] <- ncores
   if (verbose) message("Limiting TileDB to ",ncores," cores. See ?limitTileDBCores.")
   invisible(cfg)
 }
@@ -256,4 +250,30 @@ tiledb_config_unset <- function(config, param) {
   stopifnot(`The 'config' argument must be a tiledb_config object` = is(config, "tiledb_config"),
             `The 'param' argument must be of type character` = is.character(param))
   libtiledb_config_unset(config@ptr, param)
+}
+
+#' Display the 'AsBuilt' JSON string
+#'
+#' @return Nothing is returned but as a side-effect the 'AsBuilt' string is displayed
+#' @export
+tiledb_config_as_built_show <- function() {
+    stopifnot("Accessing 'AsBuilt' requires TileDB 2.17 or newer" = tiledb_version(TRUE) >= "2.17.0")
+    cat(libtiledb_as_built_dump(), "\n")
+}
+
+#' Return the 'AsBuilt' JSON string
+#'
+#' @return The JSON string containing 'AsBuilt' information
+#' @examples
+#' if (tiledb_version(TRUE) > "2.17")
+#'     txt <- tiledb::tiledb_config_as_built_json()
+#' ## now eg either one of
+#' ##   sapply(jsonlite::fromJSON(txt)$as_built$parameters$storage_backends, \(x) x[[1]])
+#' ##   sapply(RcppSimdJson::fparse(txt)$as_built$parameters$storage_backends, \(x) x[[1]])
+#' ## will return a named vector such as
+#' ##   c(azure = FALSE, gcs = FALSE, hdfs = FALSE, s3 = TRUE)
+#' @export
+tiledb_config_as_built_json <- function() {
+    stopifnot("Accessing 'AsBuilt' requires TileDB 2.17 or newer" = tiledb_version(TRUE) >= "2.17.0")
+    libtiledb_as_built_dump()
 }

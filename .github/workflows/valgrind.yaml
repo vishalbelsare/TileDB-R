@@ -1,0 +1,37 @@
+name: valgrind
+
+on:
+  schedule:
+    - cron: "17 01 * * *"
+  workflow_dispatch:
+
+jobs:
+  valgrind:
+    runs-on: ubuntu-latest
+    name: ${{ matrix.tag }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        tag: [ release-2.25, release-2.26, dev ]
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Install Dependencies
+      run: sudo tools/ci/valgrind/installDependencies.sh
+
+    - name: Build TileDB
+      run: sudo tools/ci/valgrind/buildTileDB.sh ${{ matrix.tag }}
+
+    - name: Build and Check Package
+      run: tools/ci/valgrind/buildAndCheckPackage.sh
+
+    - name: Show Test Log
+      run: tools/ci/valgrind/showTestLogs.sh
+
+    - name: Show Valgrind Summary
+      env:
+        slack_web_hook: ${{ secrets.SLACK_WEBHOOK_SECRET }}
+      run: tools/ci/valgrind/valgrindSummary.sh ${{ matrix.tag }} "${slack_web_hook}"

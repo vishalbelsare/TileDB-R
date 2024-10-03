@@ -1,9 +1,6 @@
 library(tinytest)
 library(tiledb)
 
-isOldWindows <- Sys.info()[["sysname"]] == "Windows" && grepl('Windows Server 2008', osVersion)
-if (isOldWindows) exit_file("skip this file on old Windows releases")
-
 tiledb_ctx(limitTileDBCores())
 
 .createArray <- function(tmp) {
@@ -55,6 +52,7 @@ expect_equal(tiledb_query_get_layout(tiledb_query_set_layout(query, "UNORDERED")
 unlink(tmp, recursive=TRUE)
 #})
 
+## N=9
 #test_that("tiledb_query basic query", {
 tmp <- tempfile()
 dir.create(tmp)
@@ -84,8 +82,9 @@ expect_equal(dat$d2, d2)
 unlink(tmp, recursive=TRUE)
 #})
 
+## N=13
 #test_that("tiledb_query alloc and range", {
-if (FALSE && requireNamespace("nanotime", quietly=TRUE)) {
+if (requireNamespace("nanotime", quietly=TRUE)) {
   suppressMessages({
     library(bit64)
     library(nanotime)
@@ -133,7 +132,7 @@ if (FALSE && requireNamespace("nanotime", quietly=TRUE)) {
   d1ptr <- tiledb_query_buffer_alloc_ptr(qry, "DATETIME_US", 6)
   qry <- tiledb_query_set_buffer_ptr(qry, "d1", d1ptr)
 
-  qry <- tiledb_query_add_range(qry, schema(arr), "rows", as.integer64(4), as.integer64(7))
+  qry <- tiledb_query_add_range(qry, tiledb::schema(arr), "rows", as.integer64(4), as.integer64(7))
 
   tiledb_query_submit(qry)
   tiledb_query_finalize(qry)
@@ -160,7 +159,7 @@ schema <- tiledb_array_schema(dom,
 tiledb_array_create(tmp, schema)
 arr <- tiledb_array(tmp)
 qry <- tiledb_query(arr, "WRITE")
-qry <- tiledb_query_set_layout(qry, "ROW_MAJOR")
+if (tiledb_version(TRUE) < "2.12.0") qry <- tiledb_query_set_layout(qry, "ROW_MAJOR")
 
 rows <- 1:10
 qry <- tiledb_query_set_buffer(qry, "rows", rows)
@@ -169,7 +168,7 @@ vals <- seq(101,110)
 qry <- tiledb_query_set_buffer(qry, "vals", vals)
 
 keys <- c(201:204, NA_integer_, 206L, NA_integer_, 208:210)
-buf <- tiledb:::libtiledb_query_buffer_alloc_ptr(arr@ptr, "INT32", 10, TRUE)
+buf <- tiledb:::libtiledb_query_buffer_alloc_ptr("INT32", 10, TRUE, 1)
 buf <- tiledb:::libtiledb_query_buffer_assign_ptr(buf, "INT32", keys, FALSE)
 qry@ptr <- tiledb:::libtiledb_query_set_buffer_ptr(qry@ptr, "keys", buf)
 
@@ -187,7 +186,7 @@ qry <- tiledb_query_set_buffer(qry, "rows", rowdat)
 valdat <- integer(10)
 qry <- tiledb_query_set_buffer(qry, "vals", valdat)
 
-buf <- tiledb:::libtiledb_query_buffer_alloc_ptr(arr@ptr, "INT32", 10, TRUE)
+buf <- tiledb:::libtiledb_query_buffer_alloc_ptr("INT32", 10, TRUE, 1)
 buf <- tiledb:::libtiledb_query_buffer_assign_ptr(buf, "INT32", keys, FALSE)
 qry@ptr <- tiledb:::libtiledb_query_set_buffer_ptr(qry@ptr, "keys", buf)
 
@@ -205,8 +204,6 @@ expect_equal(valdat[1:n], vals[4:7])
 expect_equal(keydat[1:n], keys[4:7])
 n2 <- tiledb:::libtiledb_query_result_buffer_elements(qry@ptr, "rows", 0)
 expect_equal(n2, 0)                     # first element can be requested, is zero for fixed-sized
-
-if (tiledb_version(TRUE) < "2.2.0") exit_file("Remaining tests require TileDB 2.2.* or later")
 
 ## not as streamlined as it could, may need a wrapper for schema-from-query
 arrschptr <- tiledb:::libtiledb_query_get_schema(qry@ptr, tiledb_get_context()@ptr)
@@ -231,17 +228,18 @@ expect_equal(nv[3], n)                  # third is length of validity buffer (if
 
 #})
 
+## n=31
 ## check for warning in insufficient memory
+oldcfg <- tiledb_config()
 cfg <- tiledb_config()
 cfg["sm.memory_budget"] <- "16"
 cfg["sm.memory_budget_var"] <- "32"
 ctx <- tiledb_ctx(cfg)
-array <- tiledb_array(tmp, as.data.frame=TRUE)
+array <- tiledb_array(tmp, return_as="data.frame")
 
-expect_warning(res <- array[])
+if (packageVersion("tiledb") <= "0.11.0") expect_warning(res <- array[]) # newer versions loop, no warning
 
 ## check for query stats
-if (tiledb_version(TRUE) < "2.4.0") exit_file("TileDB Query + Ctx stats requires TileDB 2.4.* or greater")
 res <- tiledb_query_stats(qry)
 expect_true(is.character(res))
 expect_true(nchar(res) > 1000)  		# safe lower boundary
@@ -249,3 +247,66 @@ expect_true(nchar(res) > 1000)  		# safe lower boundary
 res <- tiledb_ctx_stats()               # test here rather than in test_ctx to have real query
 expect_true(is.character(res))
 expect_true(nchar(res) > 1000)  		# safe lower boundary
+
+ctx <- tiledb_ctx(oldcfg)               # reset config
+
+## n==35
+## check deletes
+if (tiledb_version(TRUE) < "2.12.0") exit_file("TileDB deletes requires TileDB 2.12.* or greater")
+if (!requireNamespace("palmerpenguins", quietly=TRUE)) exit_file("remainder needs 'palmerpenguins'")
+uri <- tempfile()
+pp <- palmerpenguins::penguins
+fromDataFrame(pp, uri, sparse = TRUE, col_index = c("species", "year"))
+
+arr <- tiledb_array(uri)
+qc <- parse_query_condition(body_mass_g > 4000 || island == "Biscoe" || sex == "male", ta = arr)
+qry <- tiledb_query(arr, "DELETE")
+qry <- tiledb_query_set_condition(qry, qc)
+tiledb_query_submit(qry)
+tiledb_query_finalize(qry)
+
+oo <- tiledb_array(uri, return_as="data.frame", strings_as_factors=TRUE)[]
+expect_equal(nrow(oo), 84)             # instead of 344 pre-deletion
+
+
+## for #537 #538: allocate char buffer and normal buffer with nullable
+## quick data frame with NAs
+sdf <- data.frame(rows=1:5,
+                  keys=c("ABC", NA, "GHI", "JKL", "MNO"),
+                  vals=c(NA,sqrt(2:3),NA,sqrt(5)))
+uri <- tempfile()
+fromDataFrame(sdf, uri, col_index=1)
+
+arr <- tiledb_array(uri)
+qry <- tiledb_query(arr, "READ")
+N <- 10
+rows <- integer(N)
+keysbuf <- tiledb_query_alloc_buffer_ptr_char(N, N*8, TRUE)
+valsbuf <- tiledb_query_buffer_alloc_ptr(qry, "FLOAT64", N, TRUE)
+
+expect_silent(tiledb_query_set_buffer(qry, "rows", rows))
+expect_silent(tiledb_query_set_buffer_ptr_char(qry, "keys", keysbuf))
+expect_silent(tiledb_query_set_buffer_ptr(qry, "vals", valsbuf))
+expect_silent(tiledb_query_set_subarray(qry, c(1L,5L), "INT32"))
+expect_silent(tiledb_query_submit(qry))
+expect_silent(tiledb_query_finalize(qry))
+expect_equal(tiledb_query_status(qry), "COMPLETE")
+
+
+uri <- tempfile()
+pp <- palmerpenguins::penguins
+fromDataFrame(pp, uri, sparse = TRUE, col_index = c("species", "year"))
+## dim 1: species
+qry <- tiledb_query(tiledb_array(uri), "READ")
+expect_equal(tiledb_query_get_range_num(qry, 1), 1)
+qry <- tiledb_query(tiledb_array(uri), "READ")
+expect_equal(tiledb_query_get_range_var(qry, 1, 1), c("", ""))
+qry <- tiledb_query(tiledb_array(uri), "READ")
+expect_error(tiledb_query_get_range_var(qry, 1, 2))  # wrong range
+## dim 2: year
+qry <- tiledb_query(tiledb_array(uri), "READ")
+expect_equal(tiledb_query_get_range_num(qry, 2), 1)
+qry <- tiledb_query(tiledb_array(uri), "READ")
+expect_equal(tiledb_query_get_range(qry, 2, 1), c(2007, 2009, 0))
+qry <- tiledb_query(tiledb_array(uri), "READ")
+expect_error(tiledb_query_get_range(qry, 2, 2))  # wrong range

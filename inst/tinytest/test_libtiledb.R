@@ -1,9 +1,6 @@
 library(tinytest)
 library(tiledb)
 
-isOldWindows <- Sys.info()[["sysname"]] == "Windows" && grepl('Windows Server 2008', osVersion)
-if (isOldWindows) exit_file("skip this file on old Windows releases")
-
 tiledb_ctx(limitTileDBCores())
 
 #test_that("version is valid", {
@@ -60,17 +57,6 @@ expect_true(is(ctx, "externalptr"))
 ctx <- tiledb_get_context()
 expect_true(is(ctx@ptr, "externalptr"))
 #})
-
-#test_that("default libtiledb_ctx config is the default config", {
-if (FALSE) {
-  # does not hold now that we set the config at run-time to throttle threads
-  ctx <- tiledb_get_context()
-  ctx_config <- tiledb:::libtiledb_ctx_config(ctx@ptr)
-  default_config <- tiledb:::libtiledb_config()
-  expect_equal(tiledb:::libtiledb_config_vector(ctx_config),
-               tiledb:::libtiledb_config_vector(default_config))
-}
-#}
 
 #test_that("libtiledb_ctx with config", {
 config <- tiledb:::libtiledb_config(c(foo = "bar"))

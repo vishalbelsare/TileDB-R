@@ -28,6 +28,11 @@ Available filters:
 \item "BITSHUFFLE"
 \item "BYTESHUFFLE"
 \item "POSITIVE_DELTA"
+\item "CHECKSUM_MD5"
+\item "CHECKSUM_SHA256"
+\item "DICTIONARY"
+\item "SCALE_FLOAT"  (TileDB 2.11.0 or later)
+\item "FILTER_XOR"   (TileDB 2.12.0 or later)
 }
 }
 \details{

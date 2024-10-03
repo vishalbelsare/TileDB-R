@@ -1,6 +1,6 @@
 #  MIT License
 #
-#  Copyright (c) 2017-2021 TileDB Inc.
+#  Copyright (c) 2017-2022 TileDB Inc.
 #
 #  Permission is hereby granted, free of charge, to any person obtaining a copy
 #  of this software and associated documentation files (the "Software"), to deal
@@ -69,7 +69,7 @@ fromSparseMatrix <- function(obj,
     classIn <- "dgTMatrix"
     if (class(obj)[1] != classIn) {
         classIn <- class(obj)[1]
-        obj <- as(obj, "dgTMatrix")
+        obj <- as(obj, "TsparseMatrix")
     }
 
     dimi <- tiledb_dim(name="i", type = "FLOAT64",  # wider range
@@ -112,7 +112,7 @@ fromSparseMatrix <- function(obj,
 toSparseMatrix <- function(uri) {
     stopifnot(`Argument 'uri' must be character` = is.character(uri))
 
-    arr <- tiledb_array(uri, as.data.frame=TRUE, query_layout="UNORDERED")
+    arr <- tiledb_array(uri, return_as="data.frame", query_layout="UNORDERED")
     obj <- arr[]
 
     dimnm <- list(NULL, NULL)        # by default no dimnames

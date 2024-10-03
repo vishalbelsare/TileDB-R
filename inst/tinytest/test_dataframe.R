@@ -1,9 +1,6 @@
 library(tinytest)
 library(tiledb)
 
-isOldWindows <- Sys.info()[["sysname"]] == "Windows" && grepl('Windows Server 2008', osVersion)
-if (isOldWindows) exit_file("skip this file on old Windows releases")
-
 ctx <- tiledb_ctx(limitTileDBCores())
 
 #test_that("tiledb_fromdataframe", {
@@ -15,7 +12,7 @@ expect_error(fromDataFrame(uri, irisdf)) # arguments checked, error in this wron
 
 fromDataFrame(irisdf, uri)
 
-arr <- tiledb_array(uri, as.data.frame=TRUE)
+arr <- tiledb_array(uri, return_as="data.frame")
 newdf <- arr[]
 #if (getRversion() >= '4.0.0') newdf$Species <- as.factor(newdf$Species)
 if (getRversion() <  '4.0.0') newdf$Species <- as.character(newdf$Species)
@@ -28,7 +25,7 @@ expect_equal(irisdf, newdf[,-1])
 
 
 ## test attrs subselection
-arr <- tiledb_array(uri, as.data.frame=TRUE, extended=FALSE,
+arr <- tiledb_array(uri, return_as="data.frame", extended=FALSE,
                     attrs = c("Petal.Length", "Petal.Width"))
 newdf <- arr[]
 expect_equivalent(iris[, c("Petal.Length", "Petal.Width")], newdf) # skip attribute
@@ -57,7 +54,7 @@ df <- data.frame(char=c("abc", "def", "g", "hijk"),
 
 fromDataFrame(df, uri)
 
-arr <- tiledb_array(uri, as.data.frame=TRUE)
+arr <- tiledb_array(uri, return_as="data.frame")
 newdf <- arr[]
 
 ## result comes back as factor by default
@@ -66,7 +63,7 @@ newdf <- within(newdf, char <- as.character(char))
 expect_equal(df, newdf[,-1])
 #})
 
-
+## n=8
 ## test dense with non-default index columm
 uri <- tempfile()
 set.seed(42)
@@ -77,7 +74,7 @@ df <- data.frame(index=sort(sample(1:1000, rows)),
                  vals=rnorm(rows) * 100,
                  stringsAsFactors=FALSE)
 fromDataFrame(df, uri)
-arr <- tiledb_array(uri, as.data.frame=TRUE)
+arr <- tiledb_array(uri, return_as="data.frame")
 chk <- arr[]
 if (getRversion() < '4.0.0') chk$chars <- as.character(chk$chars)
 expect_equal(df, chk[,-1])              # omit first col which is added
@@ -86,7 +83,7 @@ if (tiledb_version(TRUE) < "2.1.0") exit_file("Remaining tests require TileDB 2.
 
 if (dir.exists(uri)) unlink(uri, recursive=TRUE)
 fromDataFrame(df, uri, col_index=1)
-arr <- tiledb_array(uri, as.data.frame=TRUE)
+arr <- tiledb_array(uri, return_as="data.frame")
 chk <- arr[]
 if (getRversion() < '4.0.0') chk$chars <- as.character(chk$chars)
 expect_equal(df[,2], na.omit(chk)[,2])  # compare column by column
@@ -95,19 +92,20 @@ expect_equal(df[,3], na.omit(chk)[,3])
 
 if (dir.exists(uri)) unlink(uri, recursive=TRUE)
 fromDataFrame(df, uri, col_index="index")
-arr <- tiledb_array(uri, as.data.frame=TRUE)
+arr <- tiledb_array(uri, return_as="data.frame")
 chk <- arr[]
 if (getRversion() < '4.0.0') chk$chars <- as.character(chk$chars)
 expect_equal(df[,2], na.omit(chk)[,2])  # compare column by column
 expect_equal(df[,3], na.omit(chk)[,3])
 
+## n=13
 olddf <- df
 df <- data.frame(chars=olddf$chars,
                  index=olddf$index,     # index not in first column
                  val=olddf$vals)
 if (dir.exists(uri)) unlink(uri, recursive=TRUE)
 fromDataFrame(df, uri)
-arr <- tiledb_array(uri, as.data.frame=TRUE)
+arr <- tiledb_array(uri, return_as="data.frame")
 chk <- arr[]
 if (getRversion() < '4.0.0') {
     df$chars <- as.character(df$chars)
@@ -117,7 +115,7 @@ expect_equal(df, chk[,-1])              # omit first col which is added
 
 if (dir.exists(uri)) unlink(uri, recursive=TRUE)
 fromDataFrame(df, uri, col_index=2)
-arr <- tiledb_array(uri, as.data.frame=TRUE)
+arr <- tiledb_array(uri, return_as="data.frame")
 chk <- arr[]
 if (getRversion() < '4.0.0') chk$chars <- as.character(chk$chars)
 expect_equal(df[,1], na.omit(chk)[,2])  # compare column by column
@@ -125,13 +123,13 @@ expect_equal(df[,3], na.omit(chk)[,3])
 
 if (dir.exists(uri)) unlink(uri, recursive=TRUE)
 fromDataFrame(df, uri, col_index="index")
-arr <- tiledb_array(uri, as.data.frame=TRUE)
+arr <- tiledb_array(uri, return_as="data.frame")
 chk <- arr[]
 if (getRversion() < '4.0.0') chk$chars <- as.character(chk$chars)
 expect_equal(df[,1], na.omit(chk)[,2])  # compare column by column
 expect_equal(df[,3], na.omit(chk)[,3])
 
-
+## n=18
 ## test sparse with non-default index columm
 uri <- tempfile()
 set.seed(42)
@@ -143,6 +141,8 @@ suppressMessages({
   library(bit64)
 })
 
+prevTZ <- Sys.getenv("TZ")
+on.exit(Sys.setenv(TZ=prevTZ))
 Sys.setenv(TZ="")
 df <- data.frame(time=round(Sys.time(), "secs") + trunc(cumsum(runif(nobs)*3600)),
                  double_range=seq(-1000, 1000, length=nobs),
@@ -154,21 +154,21 @@ df <- data.frame(time=round(Sys.time(), "secs") + trunc(cumsum(runif(nobs)*3600)
 if (dir.exists(uri)) unlink(uri, recursive=TRUE)
 fromDataFrame(df, uri, sparse=TRUE)
 
-chk <- tiledb_array(uri, as.data.frame=TRUE, extended=FALSE)
+chk <- tiledb_array(uri, return_as="data.frame", extended=FALSE)
 expect_equivalent(df, chk[])            # skip attribute
 
 for (i in seq_len(dim(df)[2])) {
     if (dir.exists(uri)) unlink(uri, recursive=TRUE)
     fromDataFrame(df, uri, sparse=TRUE, col_index=i)
-    chk <- tiledb_array(uri, as.data.frame=TRUE)
+    chk <- tiledb_array(uri, return_as="data.frame")
     expect_equal(df, chk[][,colnames(df)]) 		# index col comes first so need re-order
 }
 
+## n=24
 ## test sparse with several non-default index columms
 uri <- tempfile()
 set.seed(42)
 nobs <- 50L
-set.seed(42)
 df <- data.frame(time = round(Sys.time(), "secs") + trunc(cumsum(runif(nobs)*3600)),
                  double_range = seq(-1000, 1000, length=nobs),
                  int_vals = sort(as.integer(runif(nobs)*1e9)),
@@ -181,7 +181,7 @@ df <- data.frame(time = round(Sys.time(), "secs") + trunc(cumsum(runif(nobs)*360
 if (dir.exists(uri)) unlink(uri, recursive=TRUE)
 fromDataFrame(df, uri, sparse=TRUE)
 
-chk <- tiledb_array(uri, as.data.frame=TRUE, extended=FALSE)
+chk <- tiledb_array(uri, return_as="data.frame", extended=FALSE)
 newdf <- chk[]
 if (getRversion() < '4.0.0') newdf$txt <- as.character(newdf$txt)
 expect_equivalent(df, newdf)            # skip attribute
@@ -190,30 +190,30 @@ expect_equivalent(df, newdf)            # skip attribute
 for (i in seq_len(dim(df)[2])) {
     if (dir.exists(uri)) unlink(uri, recursive=TRUE)
     fromDataFrame(df, uri, sparse=TRUE, col_index=i)
-    chk <- tiledb_array(uri, as.data.frame=TRUE)
+    chk <- tiledb_array(uri, return_as="data.frame")
     newdf <- chk[]
     if (getRversion() < '4.0.0') newdf$txt <- as.character(newdf$txt)
     expect_equal(df, newdf[, colnames(df)])
 }
 
-
 combinations <- list(c(1,2), c(1,3), c(2,4), c(3,5), c(4,5), c(2,3,4))
 for (comb in combinations) {
     if (dir.exists(uri)) unlink(uri, recursive=TRUE)
     fromDataFrame(df, uri, sparse=TRUE, col_index=comb) # by index
-    chk <- tiledb_array(uri, as.data.frame=TRUE)
+    chk <- tiledb_array(uri, return_as="data.frame")
     newdf <- chk[]
     if (getRversion() < '4.0.0') newdf$txt <- as.character(newdf$txt)
     expect_equal(df, newdf[][, colnames(df)])
 
     if (dir.exists(uri)) unlink(uri, recursive=TRUE)
     fromDataFrame(df, uri, sparse=TRUE, col_index=colnames(df)[comb]) # by name
-    chk <- tiledb_array(uri, as.data.frame=TRUE)
+    chk <- tiledb_array(uri, return_as="data.frame")
     newdf <- chk[]
     if (getRversion() < '4.0.0') newdf$txt <- as.character(newdf$txt)
     expect_equal(df, newdf[, colnames(df)])
 }
 
+## n=44
 ## simple nullable example, no CHAR support yet C++
 uri <- tempfile()
 if (dir.exists(uri)) unlink(uri, recursive=TRUE)
@@ -223,7 +223,7 @@ dat <- data.frame(A=1:10,
 dat[3,1] <- NA
 dat[4,3] <- NA
 fromDataFrame(dat, uri)
-chk <- tiledb_array(uri, as.data.frame=TRUE)
+chk <- tiledb_array(uri, return_as="data.frame")
 val <- chk[][,-1]  # omit added rows
 if (getRversion() < '4.0.0') {
     dat$B <- as.character(dat$B)
@@ -239,7 +239,7 @@ D <- data.frame(sample=paste(LETTERS[1:N], as.character(sort(trunc(runif(N, 100,
                 stringsAsFactors=FALSE)
 uri <- tempfile()
 fromDataFrame(D, uri, col_index=1, sparse=TRUE)
-arr <- tiledb_array(uri, as.data.frame=TRUE)
+arr <- tiledb_array(uri, return_as="data.frame")
 chk <- arr[]
 if (getRversion() < '4.0.0') {
     chk$sample <- as.character(chk$sample)
@@ -247,6 +247,7 @@ if (getRversion() < '4.0.0') {
 }
 expect_equivalent(D, chk)               # skip attribute
 
+## n=45
 ## sparse array can have duplicate values in index column
 df <- data.frame(
   index = c(1, 1, 3),
@@ -260,7 +261,7 @@ expect_error(fromDataFrame(df, uri, col_index=1, sparse=TRUE, allows_dups=FALSE)
 uri <- tempfile()
 expect_silent(arr <- fromDataFrame(df, uri, col_index=1, sparse=TRUE, allows_dups=TRUE))
 
-arr <- tiledb_array(uri, as.data.frame=TRUE)
+arr <- tiledb_array(uri, return_as="data.frame")
 chk <- arr[]
 if (getRversion() <  '4.0.0') chk$char <- as.character(chk$char)
 expect_equivalent(df, chk)              # skip attribute
@@ -279,3 +280,88 @@ if (getRversion() < '4.0.0') {
     res$dd <- as.character(res$dd)
 }
 expect_equivalent(df, res)
+
+## n=49
+## test ingest vs schema_only vs append
+if (tiledb_version(TRUE) < "2.4.0") exit_file("Neeeds TileDB 2.4.* or later")
+if (!requireNamespace("palmerpenguins", quietly=TRUE)) exit_file("remainder needs 'palmerpenguins'")
+library(palmerpenguins)
+data <- penguins
+
+uri <- tempfile()
+
+fromDataFrame(data, uri, col_index=1:2, mode="schema_only")
+arr <- tiledb_array(uri, return_as="data.frame")
+chk <- arr[]
+expect_equal(nrow(chk), 0)              # no data
+expect_equal(ncol(chk), ncol(data))     # but all columns
+
+fromDataFrame(data, uri, col_index=1:2, mode="append")
+arr <- tiledb_array(uri, return_as="data.frame")
+chk <- arr[]
+expect_equal(nrow(chk), nrow(data))     # all data
+expect_equal(ncol(chk), ncol(data))     # all columns
+
+tiledb_vfs_remove_dir(uri)
+fromDataFrame(data, uri, col_index=1:2) # default mode
+arr <- tiledb_array(uri, return_as="data.frame")
+chk <- arr[]
+expect_equal(nrow(chk), nrow(data))     # all data
+expect_equal(ncol(chk), ncol(data))     # all columns
+
+## n=55
+## attribute-less arrays
+uri <- tempfile()
+D <- data.frame(dim = c(2L, 4L, 6L))
+dim <- tiledb_dim(name = "dim", domain = c(0L, 9L), type = "INT32")
+sch <- tiledb_array_schema(domain = tiledb_domain(dim), sparse = TRUE)
+tiledb_array_create(uri, sch)
+arr <- tiledb_array(uri)
+arr[] <- D
+arr2 <- tiledb_array(uri, return_as="data.frame")
+res2 <- arr2[]
+attr(res2, "query_status") <- NULL
+expect_equal(D, res2)
+
+uri <- tempfile()
+fromDataFrame(D, uri, col_index=1)
+arr2 <- tiledb_array(uri, return_as="data.frame")
+res2 <- arr2[]
+attr(res2, "query_status") <- NULL
+expect_equal(D, res2)
+
+
+## list columns
+D <- data.frame(a=1:5,
+                b=I(split(c(1:4,NA,NA,7:10), ceiling((1:10)/2))),
+                c=I(split(c(101:109, NA, NA, NA, 113:115), ceiling((1:15)/3))))
+uri <- tempfile()
+fromDataFrame(D, uri, col_index=1)
+arr <- tiledb_array(uri, return_as="data.frame")
+res <- arr[]
+expect_equivalent(res, D)
+
+
+## fromDataFrame with timestamps
+if (tiledb_version(TRUE) < "2.15.0") exit_file("Remaining tests require TileDB 2.15.0 or later")
+D <- data.frame(key=(1:10)*10, value=letters[1:10])
+uri <- tempfile()
+now <- Sys.time()
+fromDataFrame(D, uri)         # no timestamps
+expect_equal(nrow(tiledb_array(uri, return_as="data.frame")[]), 10)
+expect_equal(nrow(tiledb_array(uri, return_as="data.frame", timestamp_end=as.POSIXct(100, origin="1970-01-01"))[]),  0)
+expect_equal(nrow(tiledb_array(uri, return_as="data.frame", timestamp_start=now + 1)[]), 0)
+unlink(uri, recursive=TRUE)
+
+fromDataFrame(D, uri, timestamps=as.POSIXct(100, origin="1970-01-01"))         # end timestamps
+expect_equal(nrow(tiledb_array(uri, return_as="data.frame")[]), 10)
+expect_equal(nrow(tiledb_array(uri, return_as="data.frame", timestamp_end=as.POSIXct(50, origin="1970-01-01"))[]), 0)
+expect_equal(nrow(tiledb_array(uri, return_as="data.frame", timestamp_start=as.POSIXct(50, origin="1970-01-01"))[]), 10)
+expect_equal(nrow(tiledb_array(uri, return_as="data.frame", timestamp_start=as.POSIXct(150, origin="1970-01-01"))[]), 0)
+unlink(uri, recursive=TRUE)
+
+fromDataFrame(D, uri, timestamps=c(as.POSIXct(100, origin="1970-01-01"), as.POSIXct(100, origin="1970-01-01"))) # start and end
+expect_equal(nrow(tiledb_array(uri, return_as="data.frame")[]), 10)
+expect_equal(nrow(tiledb_array(uri, return_as="data.frame", timestamp_end=as.POSIXct(50, origin="1970-01-01"))[]), 0)
+expect_equal(nrow(tiledb_array(uri, return_as="data.frame", timestamp_start=as.POSIXct(50, origin="1970-01-01"))[]), 10)
+expect_equal(nrow(tiledb_array(uri, return_as="data.frame", timestamp_start=as.POSIXct(150, origin="1970-01-01"))[]), 0)

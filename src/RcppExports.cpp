@@ -12,93 +12,117 @@ Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
 Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
-// allocate_arrow_array_as_double
-double allocate_arrow_array_as_double();
-RcppExport SEXP _tiledb_allocate_arrow_array_as_double() {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    rcpp_result_gen = Rcpp::wrap(allocate_arrow_array_as_double());
-    return rcpp_result_gen;
-END_RCPP
-}
-// allocate_arrow_schema_as_double
-double allocate_arrow_schema_as_double();
-RcppExport SEXP _tiledb_allocate_arrow_schema_as_double() {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    rcpp_result_gen = Rcpp::wrap(allocate_arrow_schema_as_double());
-    return rcpp_result_gen;
-END_RCPP
-}
-// delete_arrow_array_from_double
-void delete_arrow_array_from_double(double dbl);
-RcppExport SEXP _tiledb_delete_arrow_array_from_double(SEXP dblSEXP) {
-BEGIN_RCPP
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< double >::type dbl(dblSEXP);
-    delete_arrow_array_from_double(dbl);
-    return R_NilValue;
-END_RCPP
-}
-// delete_arrow_schema_from_double
-void delete_arrow_schema_from_double(double dbl);
-RcppExport SEXP _tiledb_delete_arrow_schema_from_double(SEXP dblSEXP) {
-BEGIN_RCPP
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< double >::type dbl(dblSEXP);
-    delete_arrow_schema_from_double(dbl);
-    return R_NilValue;
-END_RCPP
-}
 // libtiledb_query_export_buffer
-Rcpp::NumericVector libtiledb_query_export_buffer(XPtr<tiledb::Context> ctx, XPtr<tiledb::Query> query, std::string name);
+nanoarrowS3 libtiledb_query_export_buffer(XPtr<tiledb::Context> ctx, XPtr<tiledb::Query> query, std::string& name);
 RcppExport SEXP _tiledb_libtiledb_query_export_buffer(SEXP ctxSEXP, SEXP querySEXP, SEXP nameSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< XPtr<tiledb::Context> >::type ctx(ctxSEXP);
     Rcpp::traits::input_parameter< XPtr<tiledb::Query> >::type query(querySEXP);
-    Rcpp::traits::input_parameter< std::string >::type name(nameSEXP);
+    Rcpp::traits::input_parameter< std::string& >::type name(nameSEXP);
     rcpp_result_gen = Rcpp::wrap(libtiledb_query_export_buffer(ctx, query, name));
     return rcpp_result_gen;
 END_RCPP
 }
 // libtiledb_query_import_buffer
-XPtr<tiledb::Query> libtiledb_query_import_buffer(XPtr<tiledb::Context> ctx, XPtr<tiledb::Query> query, std::string name, Rcpp::NumericVector arrowpointers);
-RcppExport SEXP _tiledb_libtiledb_query_import_buffer(SEXP ctxSEXP, SEXP querySEXP, SEXP nameSEXP, SEXP arrowpointersSEXP) {
+XPtr<tiledb::Query> libtiledb_query_import_buffer(XPtr<tiledb::Context> ctx, XPtr<tiledb::Query> query, std::string& name, nanoarrowS3 naptr);
+RcppExport SEXP _tiledb_libtiledb_query_import_buffer(SEXP ctxSEXP, SEXP querySEXP, SEXP nameSEXP, SEXP naptrSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< XPtr<tiledb::Context> >::type ctx(ctxSEXP);
     Rcpp::traits::input_parameter< XPtr<tiledb::Query> >::type query(querySEXP);
-    Rcpp::traits::input_parameter< std::string >::type name(nameSEXP);
-    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type arrowpointers(arrowpointersSEXP);
-    rcpp_result_gen = Rcpp::wrap(libtiledb_query_import_buffer(ctx, query, name, arrowpointers));
+    Rcpp::traits::input_parameter< std::string& >::type name(nameSEXP);
+    Rcpp::traits::input_parameter< nanoarrowS3 >::type naptr(naptrSEXP);
+    rcpp_result_gen = Rcpp::wrap(libtiledb_query_import_buffer(ctx, query, name, naptr));
     return rcpp_result_gen;
 END_RCPP
 }
-// libtiledb_query_set_coordinates
-XPtr<tiledb::Query> libtiledb_query_set_coordinates(XPtr<tiledb::Query> query, SEXP coords, std::string dtype);
-RcppExport SEXP _tiledb_libtiledb_query_set_coordinates(SEXP querySEXP, SEXP coordsSEXP, SEXP dtypeSEXP) {
+// libtiledb_query_export_arrow_table
+nanoarrowS3 libtiledb_query_export_arrow_table(XPtr<tiledb::Context> ctx, XPtr<tiledb::Query> query, std::vector<std::string> names);
+RcppExport SEXP _tiledb_libtiledb_query_export_arrow_table(SEXP ctxSEXP, SEXP querySEXP, SEXP namesSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< XPtr<tiledb::Context> >::type ctx(ctxSEXP);
+    Rcpp::traits::input_parameter< XPtr<tiledb::Query> >::type query(querySEXP);
+    Rcpp::traits::input_parameter< std::vector<std::string> >::type names(namesSEXP);
+    rcpp_result_gen = Rcpp::wrap(libtiledb_query_export_arrow_table(ctx, query, names));
+    return rcpp_result_gen;
+END_RCPP
+}
+// libtiledb_to_arrow
+nanoarrowS3 libtiledb_to_arrow(Rcpp::XPtr<tiledb::ArrayBuffers> ab, Rcpp::XPtr<tiledb::Query> qry, Rcpp::List dicts);
+RcppExport SEXP _tiledb_libtiledb_to_arrow(SEXP abSEXP, SEXP qrySEXP, SEXP dictsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::XPtr<tiledb::ArrayBuffers> >::type ab(abSEXP);
+    Rcpp::traits::input_parameter< Rcpp::XPtr<tiledb::Query> >::type qry(qrySEXP);
+    Rcpp::traits::input_parameter< Rcpp::List >::type dicts(dictsSEXP);
+    rcpp_result_gen = Rcpp::wrap(libtiledb_to_arrow(ab, qry, dicts));
+    return rcpp_result_gen;
+END_RCPP
+}
+// libtiledb_allocate_column_buffers
+Rcpp::XPtr<tiledb::ArrayBuffers> libtiledb_allocate_column_buffers(Rcpp::XPtr<tiledb::Context> ctx, Rcpp::XPtr<tiledb::Query> qry, std::string uri, std::vector<std::string> names, const size_t memory_budget);
+RcppExport SEXP _tiledb_libtiledb_allocate_column_buffers(SEXP ctxSEXP, SEXP qrySEXP, SEXP uriSEXP, SEXP namesSEXP, SEXP memory_budgetSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::XPtr<tiledb::Context> >::type ctx(ctxSEXP);
+    Rcpp::traits::input_parameter< Rcpp::XPtr<tiledb::Query> >::type qry(qrySEXP);
+    Rcpp::traits::input_parameter< std::string >::type uri(uriSEXP);
+    Rcpp::traits::input_parameter< std::vector<std::string> >::type names(namesSEXP);
+    Rcpp::traits::input_parameter< const size_t >::type memory_budget(memory_budgetSEXP);
+    rcpp_result_gen = Rcpp::wrap(libtiledb_allocate_column_buffers(ctx, qry, uri, names, memory_budget));
+    return rcpp_result_gen;
+END_RCPP
+}
+// nanoarrow2list
+Rcpp::List nanoarrow2list(nanoarrowS3 naarrptr);
+RcppExport SEXP _tiledb_nanoarrow2list(SEXP naarrptrSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< nanoarrowS3 >::type naarrptr(naarrptrSEXP);
+    rcpp_result_gen = Rcpp::wrap(nanoarrow2list(naarrptr));
+    return rcpp_result_gen;
+END_RCPP
+}
+// makeQueryWrapper
+SEXP makeQueryWrapper(SEXP qp);
+RcppExport SEXP _tiledb_makeQueryWrapper(SEXP qpSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< SEXP >::type qp(qpSEXP);
+    rcpp_result_gen = Rcpp::wrap(makeQueryWrapper(qp));
+    return rcpp_result_gen;
+END_RCPP
+}
+// libtiledb_query_submit_async
+XPtr<tiledb::Query> libtiledb_query_submit_async(XPtr<tiledb::Query> query);
+RcppExport SEXP _tiledb_libtiledb_query_submit_async(SEXP querySEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< XPtr<tiledb::Query> >::type query(querySEXP);
-    Rcpp::traits::input_parameter< SEXP >::type coords(coordsSEXP);
-    Rcpp::traits::input_parameter< std::string >::type dtype(dtypeSEXP);
-    rcpp_result_gen = Rcpp::wrap(libtiledb_query_set_coordinates(query, coords, dtype));
+    rcpp_result_gen = Rcpp::wrap(libtiledb_query_submit_async(query));
     return rcpp_result_gen;
 END_RCPP
 }
-// libtiledb_coords
-std::string libtiledb_coords();
-RcppExport SEXP _tiledb_libtiledb_coords() {
+// libtiledb_array_create_with_key
+std::string libtiledb_array_create_with_key(std::string uri, XPtr<tiledb::ArraySchema> schema, std::string encryption_key);
+RcppExport SEXP _tiledb_libtiledb_array_create_with_key(SEXP uriSEXP, SEXP schemaSEXP, SEXP encryption_keySEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    rcpp_result_gen = Rcpp::wrap(libtiledb_coords());
+    Rcpp::traits::input_parameter< std::string >::type uri(uriSEXP);
+    Rcpp::traits::input_parameter< XPtr<tiledb::ArraySchema> >::type schema(schemaSEXP);
+    Rcpp::traits::input_parameter< std::string >::type encryption_key(encryption_keySEXP);
+    rcpp_result_gen = Rcpp::wrap(libtiledb_array_create_with_key(uri, schema, encryption_key));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -131,6 +155,17 @@ BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     rcpp_result_gen = Rcpp::wrap(libtiledb_version());
+    return rcpp_result_gen;
+END_RCPP
+}
+// tiledb_datatype_max_value
+size_t tiledb_datatype_max_value(const std::string& datatype);
+RcppExport SEXP _tiledb_tiledb_datatype_max_value(SEXP datatypeSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const std::string& >::type datatype(datatypeSEXP);
+    rcpp_result_gen = Rcpp::wrap(tiledb_datatype_max_value(datatype));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -283,6 +318,16 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
+// libtiledb_as_built_dump
+std::string libtiledb_as_built_dump();
+RcppExport SEXP _tiledb_libtiledb_as_built_dump() {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    rcpp_result_gen = Rcpp::wrap(libtiledb_as_built_dump());
+    return rcpp_result_gen;
+END_RCPP
+}
 // libtiledb_dim
 XPtr<tiledb::Dimension> libtiledb_dim(XPtr<tiledb::Context> ctx, std::string name, std::string type, SEXP domain, SEXP tile_extent);
 RcppExport SEXP _tiledb_libtiledb_dim(SEXP ctxSEXP, SEXP nameSEXP, SEXP typeSEXP, SEXP domainSEXP, SEXP tile_extentSEXP) {
@@ -377,14 +422,14 @@ BEGIN_RCPP
 END_RCPP
 }
 // libtiledb_dimension_set_filter_list
-XPtr<tiledb::Dimension> libtiledb_dimension_set_filter_list(XPtr<tiledb::Dimension> dim, XPtr<tiledb::FilterList> filter_list);
-RcppExport SEXP _tiledb_libtiledb_dimension_set_filter_list(SEXP dimSEXP, SEXP filter_listSEXP) {
+XPtr<tiledb::Dimension> libtiledb_dimension_set_filter_list(XPtr<tiledb::Dimension> dim, XPtr<tiledb::FilterList> fltrlst);
+RcppExport SEXP _tiledb_libtiledb_dimension_set_filter_list(SEXP dimSEXP, SEXP fltrlstSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< XPtr<tiledb::Dimension> >::type dim(dimSEXP);
-    Rcpp::traits::input_parameter< XPtr<tiledb::FilterList> >::type filter_list(filter_listSEXP);
-    rcpp_result_gen = Rcpp::wrap(libtiledb_dimension_set_filter_list(dim, filter_list));
+    Rcpp::traits::input_parameter< XPtr<tiledb::FilterList> >::type fltrlst(fltrlstSEXP);
+    rcpp_result_gen = Rcpp::wrap(libtiledb_dimension_set_filter_list(dim, fltrlst));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -515,15 +560,16 @@ BEGIN_RCPP
 END_RCPP
 }
 // libtiledb_filter_set_option
-void libtiledb_filter_set_option(XPtr<tiledb::Filter> filter, std::string filter_option_str, int value);
-RcppExport SEXP _tiledb_libtiledb_filter_set_option(SEXP filterSEXP, SEXP filter_option_strSEXP, SEXP valueSEXP) {
+XPtr<tiledb::Filter> libtiledb_filter_set_option(XPtr<tiledb::Filter> filter, std::string filter_option_str, SEXP valuesxp);
+RcppExport SEXP _tiledb_libtiledb_filter_set_option(SEXP filterSEXP, SEXP filter_option_strSEXP, SEXP valuesxpSEXP) {
 BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< XPtr<tiledb::Filter> >::type filter(filterSEXP);
     Rcpp::traits::input_parameter< std::string >::type filter_option_str(filter_option_strSEXP);
-    Rcpp::traits::input_parameter< int >::type value(valueSEXP);
-    libtiledb_filter_set_option(filter, filter_option_str, value);
-    return R_NilValue;
+    Rcpp::traits::input_parameter< SEXP >::type valuesxp(valuesxpSEXP);
+    rcpp_result_gen = Rcpp::wrap(libtiledb_filter_set_option(filter, filter_option_str, valuesxp));
+    return rcpp_result_gen;
 END_RCPP
 }
 // libtiledb_filter_list
@@ -584,18 +630,18 @@ BEGIN_RCPP
 END_RCPP
 }
 // libtiledb_attribute
-XPtr<tiledb::Attribute> libtiledb_attribute(XPtr<tiledb::Context> ctx, std::string name, std::string type, XPtr<tiledb::FilterList> filter_list, int ncells, bool nullable);
-RcppExport SEXP _tiledb_libtiledb_attribute(SEXP ctxSEXP, SEXP nameSEXP, SEXP typeSEXP, SEXP filter_listSEXP, SEXP ncellsSEXP, SEXP nullableSEXP) {
+XPtr<tiledb::Attribute> libtiledb_attribute(XPtr<tiledb::Context> ctx, std::string name, std::string type, XPtr<tiledb::FilterList> fltrlst, int ncells, bool nullable);
+RcppExport SEXP _tiledb_libtiledb_attribute(SEXP ctxSEXP, SEXP nameSEXP, SEXP typeSEXP, SEXP fltrlstSEXP, SEXP ncellsSEXP, SEXP nullableSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< XPtr<tiledb::Context> >::type ctx(ctxSEXP);
     Rcpp::traits::input_parameter< std::string >::type name(nameSEXP);
     Rcpp::traits::input_parameter< std::string >::type type(typeSEXP);
-    Rcpp::traits::input_parameter< XPtr<tiledb::FilterList> >::type filter_list(filter_listSEXP);
+    Rcpp::traits::input_parameter< XPtr<tiledb::FilterList> >::type fltrlst(fltrlstSEXP);
     Rcpp::traits::input_parameter< int >::type ncells(ncellsSEXP);
     Rcpp::traits::input_parameter< bool >::type nullable(nullableSEXP);
-    rcpp_result_gen = Rcpp::wrap(libtiledb_attribute(ctx, name, type, filter_list, ncells, nullable));
+    rcpp_result_gen = Rcpp::wrap(libtiledb_attribute(ctx, name, type, fltrlst, ncells, nullable));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -644,14 +690,14 @@ BEGIN_RCPP
 END_RCPP
 }
 // libtiledb_attribute_set_filter_list
-XPtr<tiledb::Attribute> libtiledb_attribute_set_filter_list(XPtr<tiledb::Attribute> attr, XPtr<tiledb::FilterList> filter_list);
-RcppExport SEXP _tiledb_libtiledb_attribute_set_filter_list(SEXP attrSEXP, SEXP filter_listSEXP) {
+XPtr<tiledb::Attribute> libtiledb_attribute_set_filter_list(XPtr<tiledb::Attribute> attr, XPtr<tiledb::FilterList> fltrlst);
+RcppExport SEXP _tiledb_libtiledb_attribute_set_filter_list(SEXP attrSEXP, SEXP fltrlstSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< XPtr<tiledb::Attribute> >::type attr(attrSEXP);
-    Rcpp::traits::input_parameter< XPtr<tiledb::FilterList> >::type filter_list(filter_listSEXP);
-    rcpp_result_gen = Rcpp::wrap(libtiledb_attribute_set_filter_list(attr, filter_list));
+    Rcpp::traits::input_parameter< XPtr<tiledb::FilterList> >::type fltrlst(fltrlstSEXP);
+    rcpp_result_gen = Rcpp::wrap(libtiledb_attribute_set_filter_list(attr, fltrlst));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -742,9 +788,86 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// libtiledb_attribute_has_enumeration
+bool libtiledb_attribute_has_enumeration(XPtr<tiledb::Context> ctx, XPtr<tiledb::Attribute> attr);
+RcppExport SEXP _tiledb_libtiledb_attribute_has_enumeration(SEXP ctxSEXP, SEXP attrSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< XPtr<tiledb::Context> >::type ctx(ctxSEXP);
+    Rcpp::traits::input_parameter< XPtr<tiledb::Attribute> >::type attr(attrSEXP);
+    rcpp_result_gen = Rcpp::wrap(libtiledb_attribute_has_enumeration(ctx, attr));
+    return rcpp_result_gen;
+END_RCPP
+}
+// libtiledb_attribute_get_enumeration_type
+Rcpp::String libtiledb_attribute_get_enumeration_type(XPtr<tiledb::Context> ctx, XPtr<tiledb::Attribute> attr, XPtr<tiledb::Array> arr);
+RcppExport SEXP _tiledb_libtiledb_attribute_get_enumeration_type(SEXP ctxSEXP, SEXP attrSEXP, SEXP arrSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< XPtr<tiledb::Context> >::type ctx(ctxSEXP);
+    Rcpp::traits::input_parameter< XPtr<tiledb::Attribute> >::type attr(attrSEXP);
+    Rcpp::traits::input_parameter< XPtr<tiledb::Array> >::type arr(arrSEXP);
+    rcpp_result_gen = Rcpp::wrap(libtiledb_attribute_get_enumeration_type(ctx, attr, arr));
+    return rcpp_result_gen;
+END_RCPP
+}
+// libtiledb_attribute_get_enumeration_vector
+SEXP libtiledb_attribute_get_enumeration_vector(XPtr<tiledb::Context> ctx, XPtr<tiledb::Attribute> attr, XPtr<tiledb::Array> arr);
+RcppExport SEXP _tiledb_libtiledb_attribute_get_enumeration_vector(SEXP ctxSEXP, SEXP attrSEXP, SEXP arrSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< XPtr<tiledb::Context> >::type ctx(ctxSEXP);
+    Rcpp::traits::input_parameter< XPtr<tiledb::Attribute> >::type attr(attrSEXP);
+    Rcpp::traits::input_parameter< XPtr<tiledb::Array> >::type arr(arrSEXP);
+    rcpp_result_gen = Rcpp::wrap(libtiledb_attribute_get_enumeration_vector(ctx, attr, arr));
+    return rcpp_result_gen;
+END_RCPP
+}
+// libtiledb_attribute_get_enumeration
+std::vector<std::string> libtiledb_attribute_get_enumeration(XPtr<tiledb::Context> ctx, XPtr<tiledb::Attribute> attr, XPtr<tiledb::Array> arr);
+RcppExport SEXP _tiledb_libtiledb_attribute_get_enumeration(SEXP ctxSEXP, SEXP attrSEXP, SEXP arrSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< XPtr<tiledb::Context> >::type ctx(ctxSEXP);
+    Rcpp::traits::input_parameter< XPtr<tiledb::Attribute> >::type attr(attrSEXP);
+    Rcpp::traits::input_parameter< XPtr<tiledb::Array> >::type arr(arrSEXP);
+    rcpp_result_gen = Rcpp::wrap(libtiledb_attribute_get_enumeration(ctx, attr, arr));
+    return rcpp_result_gen;
+END_RCPP
+}
+// libtiledb_attribute_set_enumeration
+XPtr<tiledb::Attribute> libtiledb_attribute_set_enumeration(XPtr<tiledb::Context> ctx, XPtr<tiledb::Attribute> attr, const std::string& enum_name);
+RcppExport SEXP _tiledb_libtiledb_attribute_set_enumeration(SEXP ctxSEXP, SEXP attrSEXP, SEXP enum_nameSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< XPtr<tiledb::Context> >::type ctx(ctxSEXP);
+    Rcpp::traits::input_parameter< XPtr<tiledb::Attribute> >::type attr(attrSEXP);
+    Rcpp::traits::input_parameter< const std::string& >::type enum_name(enum_nameSEXP);
+    rcpp_result_gen = Rcpp::wrap(libtiledb_attribute_set_enumeration(ctx, attr, enum_name));
+    return rcpp_result_gen;
+END_RCPP
+}
+// libtiledb_attribute_is_ordered_enumeration
+bool libtiledb_attribute_is_ordered_enumeration(XPtr<tiledb::Context> ctx, XPtr<tiledb::Attribute> attr, XPtr<tiledb::Array> arr);
+RcppExport SEXP _tiledb_libtiledb_attribute_is_ordered_enumeration(SEXP ctxSEXP, SEXP attrSEXP, SEXP arrSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< XPtr<tiledb::Context> >::type ctx(ctxSEXP);
+    Rcpp::traits::input_parameter< XPtr<tiledb::Attribute> >::type attr(attrSEXP);
+    Rcpp::traits::input_parameter< XPtr<tiledb::Array> >::type arr(arrSEXP);
+    rcpp_result_gen = Rcpp::wrap(libtiledb_attribute_is_ordered_enumeration(ctx, attr, arr));
+    return rcpp_result_gen;
+END_RCPP
+}
 // libtiledb_array_schema
-XPtr<tiledb::ArraySchema> libtiledb_array_schema(XPtr<tiledb::Context> ctx, XPtr<tiledb::Domain> domain, List attributes, std::string cell_order, std::string tile_order, Nullable<XPtr<tiledb::FilterList>> coords_filter_list, Nullable<XPtr<tiledb::FilterList>> offsets_filter_list, bool sparse);
-RcppExport SEXP _tiledb_libtiledb_array_schema(SEXP ctxSEXP, SEXP domainSEXP, SEXP attributesSEXP, SEXP cell_orderSEXP, SEXP tile_orderSEXP, SEXP coords_filter_listSEXP, SEXP offsets_filter_listSEXP, SEXP sparseSEXP) {
+XPtr<tiledb::ArraySchema> libtiledb_array_schema(XPtr<tiledb::Context> ctx, XPtr<tiledb::Domain> domain, List attributes, std::string cell_order, std::string tile_order, Nullable<XPtr<tiledb::FilterList>> coords_filter_list, Nullable<XPtr<tiledb::FilterList>> offsets_filter_list, Nullable<XPtr<tiledb::FilterList>> validity_filter_list, bool sparse, Nullable<List> enumerations_list);
+RcppExport SEXP _tiledb_libtiledb_array_schema(SEXP ctxSEXP, SEXP domainSEXP, SEXP attributesSEXP, SEXP cell_orderSEXP, SEXP tile_orderSEXP, SEXP coords_filter_listSEXP, SEXP offsets_filter_listSEXP, SEXP validity_filter_listSEXP, SEXP sparseSEXP, SEXP enumerations_listSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -755,8 +878,10 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< std::string >::type tile_order(tile_orderSEXP);
     Rcpp::traits::input_parameter< Nullable<XPtr<tiledb::FilterList>> >::type coords_filter_list(coords_filter_listSEXP);
     Rcpp::traits::input_parameter< Nullable<XPtr<tiledb::FilterList>> >::type offsets_filter_list(offsets_filter_listSEXP);
+    Rcpp::traits::input_parameter< Nullable<XPtr<tiledb::FilterList>> >::type validity_filter_list(validity_filter_listSEXP);
     Rcpp::traits::input_parameter< bool >::type sparse(sparseSEXP);
-    rcpp_result_gen = Rcpp::wrap(libtiledb_array_schema(ctx, domain, attributes, cell_order, tile_order, coords_filter_list, offsets_filter_list, sparse));
+    Rcpp::traits::input_parameter< Nullable<List> >::type enumerations_list(enumerations_listSEXP);
+    rcpp_result_gen = Rcpp::wrap(libtiledb_array_schema(ctx, domain, attributes, cell_order, tile_order, coords_filter_list, offsets_filter_list, validity_filter_list, sparse, enumerations_list));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -953,14 +1078,14 @@ BEGIN_RCPP
 END_RCPP
 }
 // libtiledb_array_schema_set_coords_filter_list
-XPtr<tiledb::ArraySchema> libtiledb_array_schema_set_coords_filter_list(XPtr<tiledb::ArraySchema> schema, XPtr<tiledb::FilterList> fltlst);
-RcppExport SEXP _tiledb_libtiledb_array_schema_set_coords_filter_list(SEXP schemaSEXP, SEXP fltlstSEXP) {
+XPtr<tiledb::ArraySchema> libtiledb_array_schema_set_coords_filter_list(XPtr<tiledb::ArraySchema> schema, XPtr<tiledb::FilterList> fltrlst);
+RcppExport SEXP _tiledb_libtiledb_array_schema_set_coords_filter_list(SEXP schemaSEXP, SEXP fltrlstSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< XPtr<tiledb::ArraySchema> >::type schema(schemaSEXP);
-    Rcpp::traits::input_parameter< XPtr<tiledb::FilterList> >::type fltlst(fltlstSEXP);
-    rcpp_result_gen = Rcpp::wrap(libtiledb_array_schema_set_coords_filter_list(schema, fltlst));
+    Rcpp::traits::input_parameter< XPtr<tiledb::FilterList> >::type fltrlst(fltrlstSEXP);
+    rcpp_result_gen = Rcpp::wrap(libtiledb_array_schema_set_coords_filter_list(schema, fltrlst));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -976,14 +1101,37 @@ BEGIN_RCPP
 END_RCPP
 }
 // libtiledb_array_schema_set_offsets_filter_list
-XPtr<tiledb::ArraySchema> libtiledb_array_schema_set_offsets_filter_list(XPtr<tiledb::ArraySchema> schema, XPtr<tiledb::FilterList> fltlst);
-RcppExport SEXP _tiledb_libtiledb_array_schema_set_offsets_filter_list(SEXP schemaSEXP, SEXP fltlstSEXP) {
+XPtr<tiledb::ArraySchema> libtiledb_array_schema_set_offsets_filter_list(XPtr<tiledb::ArraySchema> schema, XPtr<tiledb::FilterList> fltrlst);
+RcppExport SEXP _tiledb_libtiledb_array_schema_set_offsets_filter_list(SEXP schemaSEXP, SEXP fltrlstSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< XPtr<tiledb::ArraySchema> >::type schema(schemaSEXP);
-    Rcpp::traits::input_parameter< XPtr<tiledb::FilterList> >::type fltlst(fltlstSEXP);
-    rcpp_result_gen = Rcpp::wrap(libtiledb_array_schema_set_offsets_filter_list(schema, fltlst));
+    Rcpp::traits::input_parameter< XPtr<tiledb::FilterList> >::type fltrlst(fltrlstSEXP);
+    rcpp_result_gen = Rcpp::wrap(libtiledb_array_schema_set_offsets_filter_list(schema, fltrlst));
+    return rcpp_result_gen;
+END_RCPP
+}
+// libtiledb_array_schema_get_validity_filter_list
+XPtr<tiledb::FilterList> libtiledb_array_schema_get_validity_filter_list(XPtr<tiledb::ArraySchema> schema);
+RcppExport SEXP _tiledb_libtiledb_array_schema_get_validity_filter_list(SEXP schemaSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< XPtr<tiledb::ArraySchema> >::type schema(schemaSEXP);
+    rcpp_result_gen = Rcpp::wrap(libtiledb_array_schema_get_validity_filter_list(schema));
+    return rcpp_result_gen;
+END_RCPP
+}
+// libtiledb_array_schema_set_validity_filter_list
+XPtr<tiledb::ArraySchema> libtiledb_array_schema_set_validity_filter_list(XPtr<tiledb::ArraySchema> schema, XPtr<tiledb::FilterList> fltrlst);
+RcppExport SEXP _tiledb_libtiledb_array_schema_set_validity_filter_list(SEXP schemaSEXP, SEXP fltrlstSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< XPtr<tiledb::ArraySchema> >::type schema(schemaSEXP);
+    Rcpp::traits::input_parameter< XPtr<tiledb::FilterList> >::type fltrlst(fltrlstSEXP);
+    rcpp_result_gen = Rcpp::wrap(libtiledb_array_schema_set_validity_filter_list(schema, fltrlst));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -1066,6 +1214,75 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// libtiledb_array_schema_version
+int libtiledb_array_schema_version(XPtr<tiledb::ArraySchema> schema);
+RcppExport SEXP _tiledb_libtiledb_array_schema_version(SEXP schemaSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< XPtr<tiledb::ArraySchema> >::type schema(schemaSEXP);
+    rcpp_result_gen = Rcpp::wrap(libtiledb_array_schema_version(schema));
+    return rcpp_result_gen;
+END_RCPP
+}
+// libtiledb_array_schema_set_enumeration
+XPtr<tiledb::ArraySchema> libtiledb_array_schema_set_enumeration(XPtr<tiledb::Context> ctx, XPtr<tiledb::ArraySchema> schema, XPtr<tiledb::Attribute> attr, const std::string enum_name, std::vector<std::string> values, bool nullable, bool ordered);
+RcppExport SEXP _tiledb_libtiledb_array_schema_set_enumeration(SEXP ctxSEXP, SEXP schemaSEXP, SEXP attrSEXP, SEXP enum_nameSEXP, SEXP valuesSEXP, SEXP nullableSEXP, SEXP orderedSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< XPtr<tiledb::Context> >::type ctx(ctxSEXP);
+    Rcpp::traits::input_parameter< XPtr<tiledb::ArraySchema> >::type schema(schemaSEXP);
+    Rcpp::traits::input_parameter< XPtr<tiledb::Attribute> >::type attr(attrSEXP);
+    Rcpp::traits::input_parameter< const std::string >::type enum_name(enum_nameSEXP);
+    Rcpp::traits::input_parameter< std::vector<std::string> >::type values(valuesSEXP);
+    Rcpp::traits::input_parameter< bool >::type nullable(nullableSEXP);
+    Rcpp::traits::input_parameter< bool >::type ordered(orderedSEXP);
+    rcpp_result_gen = Rcpp::wrap(libtiledb_array_schema_set_enumeration(ctx, schema, attr, enum_name, values, nullable, ordered));
+    return rcpp_result_gen;
+END_RCPP
+}
+// libtiledb_array_schema_set_enumeration_empty
+XPtr<tiledb::ArraySchema> libtiledb_array_schema_set_enumeration_empty(XPtr<tiledb::Context> ctx, XPtr<tiledb::ArraySchema> schema, XPtr<tiledb::Attribute> attr, const std::string enum_name, const std::string type_str, int cell_val_num, bool ordered);
+RcppExport SEXP _tiledb_libtiledb_array_schema_set_enumeration_empty(SEXP ctxSEXP, SEXP schemaSEXP, SEXP attrSEXP, SEXP enum_nameSEXP, SEXP type_strSEXP, SEXP cell_val_numSEXP, SEXP orderedSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< XPtr<tiledb::Context> >::type ctx(ctxSEXP);
+    Rcpp::traits::input_parameter< XPtr<tiledb::ArraySchema> >::type schema(schemaSEXP);
+    Rcpp::traits::input_parameter< XPtr<tiledb::Attribute> >::type attr(attrSEXP);
+    Rcpp::traits::input_parameter< const std::string >::type enum_name(enum_nameSEXP);
+    Rcpp::traits::input_parameter< const std::string >::type type_str(type_strSEXP);
+    Rcpp::traits::input_parameter< int >::type cell_val_num(cell_val_numSEXP);
+    Rcpp::traits::input_parameter< bool >::type ordered(orderedSEXP);
+    rcpp_result_gen = Rcpp::wrap(libtiledb_array_schema_set_enumeration_empty(ctx, schema, attr, enum_name, type_str, cell_val_num, ordered));
+    return rcpp_result_gen;
+END_RCPP
+}
+// libtiledb_array_schema_get_current_domain
+XPtr<tiledb::CurrentDomain> libtiledb_array_schema_get_current_domain(XPtr<tiledb::Context> ctx, XPtr<tiledb::ArraySchema> sch);
+RcppExport SEXP _tiledb_libtiledb_array_schema_get_current_domain(SEXP ctxSEXP, SEXP schSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< XPtr<tiledb::Context> >::type ctx(ctxSEXP);
+    Rcpp::traits::input_parameter< XPtr<tiledb::ArraySchema> >::type sch(schSEXP);
+    rcpp_result_gen = Rcpp::wrap(libtiledb_array_schema_get_current_domain(ctx, sch));
+    return rcpp_result_gen;
+END_RCPP
+}
+// libtiledb_array_schema_set_current_domain
+void libtiledb_array_schema_set_current_domain(XPtr<tiledb::Context> ctx, XPtr<tiledb::ArraySchema> sch, XPtr<tiledb::CurrentDomain> cd);
+RcppExport SEXP _tiledb_libtiledb_array_schema_set_current_domain(SEXP ctxSEXP, SEXP schSEXP, SEXP cdSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< XPtr<tiledb::Context> >::type ctx(ctxSEXP);
+    Rcpp::traits::input_parameter< XPtr<tiledb::ArraySchema> >::type sch(schSEXP);
+    Rcpp::traits::input_parameter< XPtr<tiledb::CurrentDomain> >::type cd(cdSEXP);
+    libtiledb_array_schema_set_current_domain(ctx, sch, cd);
+    return R_NilValue;
+END_RCPP
+}
 // libtiledb_array_schema_evolution
 XPtr<tiledb::ArraySchemaEvolution> libtiledb_array_schema_evolution(XPtr<tiledb::Context> ctx);
 RcppExport SEXP _tiledb_libtiledb_array_schema_evolution(SEXP ctxSEXP) {
@@ -1113,6 +1330,79 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// libtiledb_array_schema_evolution_add_enumeration
+XPtr<tiledb::ArraySchemaEvolution> libtiledb_array_schema_evolution_add_enumeration(XPtr<tiledb::Context> ctx, XPtr<tiledb::ArraySchemaEvolution> ase, const std::string& enum_name, std::vector<std::string> values, bool nullable, bool ordered);
+RcppExport SEXP _tiledb_libtiledb_array_schema_evolution_add_enumeration(SEXP ctxSEXP, SEXP aseSEXP, SEXP enum_nameSEXP, SEXP valuesSEXP, SEXP nullableSEXP, SEXP orderedSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< XPtr<tiledb::Context> >::type ctx(ctxSEXP);
+    Rcpp::traits::input_parameter< XPtr<tiledb::ArraySchemaEvolution> >::type ase(aseSEXP);
+    Rcpp::traits::input_parameter< const std::string& >::type enum_name(enum_nameSEXP);
+    Rcpp::traits::input_parameter< std::vector<std::string> >::type values(valuesSEXP);
+    Rcpp::traits::input_parameter< bool >::type nullable(nullableSEXP);
+    Rcpp::traits::input_parameter< bool >::type ordered(orderedSEXP);
+    rcpp_result_gen = Rcpp::wrap(libtiledb_array_schema_evolution_add_enumeration(ctx, ase, enum_name, values, nullable, ordered));
+    return rcpp_result_gen;
+END_RCPP
+}
+// libtiledb_array_schema_evolution_add_enumeration_empty
+XPtr<tiledb::ArraySchemaEvolution> libtiledb_array_schema_evolution_add_enumeration_empty(XPtr<tiledb::Context> ctx, XPtr<tiledb::ArraySchemaEvolution> ase, const std::string& enum_name, const std::string type_str, int cell_val_num, bool ordered);
+RcppExport SEXP _tiledb_libtiledb_array_schema_evolution_add_enumeration_empty(SEXP ctxSEXP, SEXP aseSEXP, SEXP enum_nameSEXP, SEXP type_strSEXP, SEXP cell_val_numSEXP, SEXP orderedSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< XPtr<tiledb::Context> >::type ctx(ctxSEXP);
+    Rcpp::traits::input_parameter< XPtr<tiledb::ArraySchemaEvolution> >::type ase(aseSEXP);
+    Rcpp::traits::input_parameter< const std::string& >::type enum_name(enum_nameSEXP);
+    Rcpp::traits::input_parameter< const std::string >::type type_str(type_strSEXP);
+    Rcpp::traits::input_parameter< int >::type cell_val_num(cell_val_numSEXP);
+    Rcpp::traits::input_parameter< bool >::type ordered(orderedSEXP);
+    rcpp_result_gen = Rcpp::wrap(libtiledb_array_schema_evolution_add_enumeration_empty(ctx, ase, enum_name, type_str, cell_val_num, ordered));
+    return rcpp_result_gen;
+END_RCPP
+}
+// libtiledb_array_schema_evolution_drop_enumeration
+XPtr<tiledb::ArraySchemaEvolution> libtiledb_array_schema_evolution_drop_enumeration(XPtr<tiledb::ArraySchemaEvolution> ase, const std::string& attrname);
+RcppExport SEXP _tiledb_libtiledb_array_schema_evolution_drop_enumeration(SEXP aseSEXP, SEXP attrnameSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< XPtr<tiledb::ArraySchemaEvolution> >::type ase(aseSEXP);
+    Rcpp::traits::input_parameter< const std::string& >::type attrname(attrnameSEXP);
+    rcpp_result_gen = Rcpp::wrap(libtiledb_array_schema_evolution_drop_enumeration(ase, attrname));
+    return rcpp_result_gen;
+END_RCPP
+}
+// libtiledb_array_schema_evolution_extend_enumeration
+XPtr<tiledb::ArraySchemaEvolution> libtiledb_array_schema_evolution_extend_enumeration(XPtr<tiledb::Context> ctx, XPtr<tiledb::ArraySchemaEvolution> ase, XPtr<tiledb::Array> array, const std::string& enum_name, std::vector<std::string> new_values, bool nullable, bool ordered);
+RcppExport SEXP _tiledb_libtiledb_array_schema_evolution_extend_enumeration(SEXP ctxSEXP, SEXP aseSEXP, SEXP arraySEXP, SEXP enum_nameSEXP, SEXP new_valuesSEXP, SEXP nullableSEXP, SEXP orderedSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< XPtr<tiledb::Context> >::type ctx(ctxSEXP);
+    Rcpp::traits::input_parameter< XPtr<tiledb::ArraySchemaEvolution> >::type ase(aseSEXP);
+    Rcpp::traits::input_parameter< XPtr<tiledb::Array> >::type array(arraySEXP);
+    Rcpp::traits::input_parameter< const std::string& >::type enum_name(enum_nameSEXP);
+    Rcpp::traits::input_parameter< std::vector<std::string> >::type new_values(new_valuesSEXP);
+    Rcpp::traits::input_parameter< bool >::type nullable(nullableSEXP);
+    Rcpp::traits::input_parameter< bool >::type ordered(orderedSEXP);
+    rcpp_result_gen = Rcpp::wrap(libtiledb_array_schema_evolution_extend_enumeration(ctx, ase, array, enum_name, new_values, nullable, ordered));
+    return rcpp_result_gen;
+END_RCPP
+}
+// libtiledb_array_schema_evolution_expand_current_domain
+XPtr<tiledb::ArraySchemaEvolution> libtiledb_array_schema_evolution_expand_current_domain(XPtr<tiledb::ArraySchemaEvolution> ase, XPtr<tiledb::CurrentDomain> cd);
+RcppExport SEXP _tiledb_libtiledb_array_schema_evolution_expand_current_domain(SEXP aseSEXP, SEXP cdSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< XPtr<tiledb::ArraySchemaEvolution> >::type ase(aseSEXP);
+    Rcpp::traits::input_parameter< XPtr<tiledb::CurrentDomain> >::type cd(cdSEXP);
+    rcpp_result_gen = Rcpp::wrap(libtiledb_array_schema_evolution_expand_current_domain(ase, cd));
+    return rcpp_result_gen;
+END_RCPP
+}
 // libtiledb_array_create
 std::string libtiledb_array_create(std::string uri, XPtr<tiledb::ArraySchema> schema);
 RcppExport SEXP _tiledb_libtiledb_array_create(SEXP uriSEXP, SEXP schemaSEXP) {
@@ -1122,19 +1412,6 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< std::string >::type uri(uriSEXP);
     Rcpp::traits::input_parameter< XPtr<tiledb::ArraySchema> >::type schema(schemaSEXP);
     rcpp_result_gen = Rcpp::wrap(libtiledb_array_create(uri, schema));
-    return rcpp_result_gen;
-END_RCPP
-}
-// libtiledb_array_create_with_key
-std::string libtiledb_array_create_with_key(std::string uri, XPtr<tiledb::ArraySchema> schema, std::string encryption_key);
-RcppExport SEXP _tiledb_libtiledb_array_create_with_key(SEXP uriSEXP, SEXP schemaSEXP, SEXP encryption_keySEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< std::string >::type uri(uriSEXP);
-    Rcpp::traits::input_parameter< XPtr<tiledb::ArraySchema> >::type schema(schemaSEXP);
-    Rcpp::traits::input_parameter< std::string >::type encryption_key(encryption_keySEXP);
-    rcpp_result_gen = Rcpp::wrap(libtiledb_array_create_with_key(uri, schema, encryption_key));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -1484,6 +1761,82 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// libtiledb_array_delete_fragments
+void libtiledb_array_delete_fragments(XPtr<tiledb::Context> ctx, XPtr<tiledb::Array> array, Rcpp::Datetime tstamp_start, Rcpp::Datetime tstamp_end);
+RcppExport SEXP _tiledb_libtiledb_array_delete_fragments(SEXP ctxSEXP, SEXP arraySEXP, SEXP tstamp_startSEXP, SEXP tstamp_endSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< XPtr<tiledb::Context> >::type ctx(ctxSEXP);
+    Rcpp::traits::input_parameter< XPtr<tiledb::Array> >::type array(arraySEXP);
+    Rcpp::traits::input_parameter< Rcpp::Datetime >::type tstamp_start(tstamp_startSEXP);
+    Rcpp::traits::input_parameter< Rcpp::Datetime >::type tstamp_end(tstamp_endSEXP);
+    libtiledb_array_delete_fragments(ctx, array, tstamp_start, tstamp_end);
+    return R_NilValue;
+END_RCPP
+}
+// libtiledb_array_delete_fragments_list
+void libtiledb_array_delete_fragments_list(XPtr<tiledb::Context> ctx, XPtr<tiledb::Array> array, std::vector<std::string> fragments);
+RcppExport SEXP _tiledb_libtiledb_array_delete_fragments_list(SEXP ctxSEXP, SEXP arraySEXP, SEXP fragmentsSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< XPtr<tiledb::Context> >::type ctx(ctxSEXP);
+    Rcpp::traits::input_parameter< XPtr<tiledb::Array> >::type array(arraySEXP);
+    Rcpp::traits::input_parameter< std::vector<std::string> >::type fragments(fragmentsSEXP);
+    libtiledb_array_delete_fragments_list(ctx, array, fragments);
+    return R_NilValue;
+END_RCPP
+}
+// libtiledb_array_has_enumeration
+bool libtiledb_array_has_enumeration(XPtr<tiledb::Context> ctx, XPtr<tiledb::Array> arr, const std::string name);
+RcppExport SEXP _tiledb_libtiledb_array_has_enumeration(SEXP ctxSEXP, SEXP arrSEXP, SEXP nameSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< XPtr<tiledb::Context> >::type ctx(ctxSEXP);
+    Rcpp::traits::input_parameter< XPtr<tiledb::Array> >::type arr(arrSEXP);
+    Rcpp::traits::input_parameter< const std::string >::type name(nameSEXP);
+    rcpp_result_gen = Rcpp::wrap(libtiledb_array_has_enumeration(ctx, arr, name));
+    return rcpp_result_gen;
+END_RCPP
+}
+// libtiledb_array_get_enumeration
+std::vector<std::string> libtiledb_array_get_enumeration(XPtr<tiledb::Context> ctx, XPtr<tiledb::Array> arr, const std::string name);
+RcppExport SEXP _tiledb_libtiledb_array_get_enumeration(SEXP ctxSEXP, SEXP arrSEXP, SEXP nameSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< XPtr<tiledb::Context> >::type ctx(ctxSEXP);
+    Rcpp::traits::input_parameter< XPtr<tiledb::Array> >::type arr(arrSEXP);
+    Rcpp::traits::input_parameter< const std::string >::type name(nameSEXP);
+    rcpp_result_gen = Rcpp::wrap(libtiledb_array_get_enumeration(ctx, arr, name));
+    return rcpp_result_gen;
+END_RCPP
+}
+// libtiledb_array_has_enumeration_vector
+Rcpp::LogicalVector libtiledb_array_has_enumeration_vector(XPtr<tiledb::Context> ctx, XPtr<tiledb::Array> array);
+RcppExport SEXP _tiledb_libtiledb_array_has_enumeration_vector(SEXP ctxSEXP, SEXP arraySEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< XPtr<tiledb::Context> >::type ctx(ctxSEXP);
+    Rcpp::traits::input_parameter< XPtr<tiledb::Array> >::type array(arraySEXP);
+    rcpp_result_gen = Rcpp::wrap(libtiledb_array_has_enumeration_vector(ctx, array));
+    return rcpp_result_gen;
+END_RCPP
+}
+// libtiledb_array_upgrade_version
+void libtiledb_array_upgrade_version(XPtr<tiledb::Context> ctx, XPtr<tiledb::Array> array, std::string& uri, Rcpp::Nullable<XPtr<tiledb::Config>> cfg);
+RcppExport SEXP _tiledb_libtiledb_array_upgrade_version(SEXP ctxSEXP, SEXP arraySEXP, SEXP uriSEXP, SEXP cfgSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< XPtr<tiledb::Context> >::type ctx(ctxSEXP);
+    Rcpp::traits::input_parameter< XPtr<tiledb::Array> >::type array(arraySEXP);
+    Rcpp::traits::input_parameter< std::string& >::type uri(uriSEXP);
+    Rcpp::traits::input_parameter< Rcpp::Nullable<XPtr<tiledb::Config>> >::type cfg(cfgSEXP);
+    libtiledb_array_upgrade_version(ctx, array, uri, cfg);
+    return R_NilValue;
+END_RCPP
+}
 // libtiledb_query
 XPtr<tiledb::Query> libtiledb_query(XPtr<tiledb::Context> ctx, XPtr<tiledb::Array> array, std::string type);
 RcppExport SEXP _tiledb_libtiledb_query(SEXP ctxSEXP, SEXP arraySEXP, SEXP typeSEXP) {
@@ -1570,54 +1923,54 @@ BEGIN_RCPP
 END_RCPP
 }
 // libtiledb_query_buffer_var_char_alloc_direct
-XPtr<vlc_buf_t> libtiledb_query_buffer_var_char_alloc_direct(int szoffsets, int szdata, bool nullable, int cols);
+XPtr<vlc_buf_t> libtiledb_query_buffer_var_char_alloc_direct(double szoffsets, double szdata, bool nullable, int cols);
 RcppExport SEXP _tiledb_libtiledb_query_buffer_var_char_alloc_direct(SEXP szoffsetsSEXP, SEXP szdataSEXP, SEXP nullableSEXP, SEXP colsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< int >::type szoffsets(szoffsetsSEXP);
-    Rcpp::traits::input_parameter< int >::type szdata(szdataSEXP);
+    Rcpp::traits::input_parameter< double >::type szoffsets(szoffsetsSEXP);
+    Rcpp::traits::input_parameter< double >::type szdata(szdataSEXP);
     Rcpp::traits::input_parameter< bool >::type nullable(nullableSEXP);
     Rcpp::traits::input_parameter< int >::type cols(colsSEXP);
     rcpp_result_gen = Rcpp::wrap(libtiledb_query_buffer_var_char_alloc_direct(szoffsets, szdata, nullable, cols));
     return rcpp_result_gen;
 END_RCPP
 }
-// convertStringVectorIntoOffsetsAndString
-std::string convertStringVectorIntoOffsetsAndString(Rcpp::CharacterVector vec, Rcpp::IntegerVector offsets);
-RcppExport SEXP _tiledb_convertStringVectorIntoOffsetsAndString(SEXP vecSEXP, SEXP offsetsSEXP) {
+// libtiledb_query_buffer_var_char_get_legacy_validity_value
+bool libtiledb_query_buffer_var_char_get_legacy_validity_value(XPtr<tiledb::Context> ctx, bool validity_override);
+RcppExport SEXP _tiledb_libtiledb_query_buffer_var_char_get_legacy_validity_value(SEXP ctxSEXP, SEXP validity_overrideSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< Rcpp::CharacterVector >::type vec(vecSEXP);
-    Rcpp::traits::input_parameter< Rcpp::IntegerVector >::type offsets(offsetsSEXP);
-    rcpp_result_gen = Rcpp::wrap(convertStringVectorIntoOffsetsAndString(vec, offsets));
+    Rcpp::traits::input_parameter< XPtr<tiledb::Context> >::type ctx(ctxSEXP);
+    Rcpp::traits::input_parameter< bool >::type validity_override(validity_overrideSEXP);
+    rcpp_result_gen = Rcpp::wrap(libtiledb_query_buffer_var_char_get_legacy_validity_value(ctx, validity_override));
+    return rcpp_result_gen;
+END_RCPP
+}
+// libtiledb_query_buffer_var_char_legacy_validity_mode
+XPtr<vlc_buf_t> libtiledb_query_buffer_var_char_legacy_validity_mode(XPtr<tiledb::Context> ctx, XPtr<vlc_buf_t> buf, bool validity_override);
+RcppExport SEXP _tiledb_libtiledb_query_buffer_var_char_legacy_validity_mode(SEXP ctxSEXP, SEXP bufSEXP, SEXP validity_overrideSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< XPtr<tiledb::Context> >::type ctx(ctxSEXP);
+    Rcpp::traits::input_parameter< XPtr<vlc_buf_t> >::type buf(bufSEXP);
+    Rcpp::traits::input_parameter< bool >::type validity_override(validity_overrideSEXP);
+    rcpp_result_gen = Rcpp::wrap(libtiledb_query_buffer_var_char_legacy_validity_mode(ctx, buf, validity_override));
     return rcpp_result_gen;
 END_RCPP
 }
 // libtiledb_query_buffer_var_char_create
-XPtr<vlc_buf_t> libtiledb_query_buffer_var_char_create(IntegerVector intoffsets, std::string data);
-RcppExport SEXP _tiledb_libtiledb_query_buffer_var_char_create(SEXP intoffsetsSEXP, SEXP dataSEXP) {
+XPtr<vlc_buf_t> libtiledb_query_buffer_var_char_create(CharacterVector vec, bool nullable, bool legacy_validity);
+RcppExport SEXP _tiledb_libtiledb_query_buffer_var_char_create(SEXP vecSEXP, SEXP nullableSEXP, SEXP legacy_validitySEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< IntegerVector >::type intoffsets(intoffsetsSEXP);
-    Rcpp::traits::input_parameter< std::string >::type data(dataSEXP);
-    rcpp_result_gen = Rcpp::wrap(libtiledb_query_buffer_var_char_create(intoffsets, data));
-    return rcpp_result_gen;
-END_RCPP
-}
-// libtiledb_query_buffer_var_char_create_nullable
-XPtr<vlc_buf_t> libtiledb_query_buffer_var_char_create_nullable(IntegerVector intoffsets, std::string data, bool nullable, std::vector<bool> navec);
-RcppExport SEXP _tiledb_libtiledb_query_buffer_var_char_create_nullable(SEXP intoffsetsSEXP, SEXP dataSEXP, SEXP nullableSEXP, SEXP navecSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< IntegerVector >::type intoffsets(intoffsetsSEXP);
-    Rcpp::traits::input_parameter< std::string >::type data(dataSEXP);
+    Rcpp::traits::input_parameter< CharacterVector >::type vec(vecSEXP);
     Rcpp::traits::input_parameter< bool >::type nullable(nullableSEXP);
-    Rcpp::traits::input_parameter< std::vector<bool> >::type navec(navecSEXP);
-    rcpp_result_gen = Rcpp::wrap(libtiledb_query_buffer_var_char_create_nullable(intoffsets, data, nullable, navec));
+    Rcpp::traits::input_parameter< bool >::type legacy_validity(legacy_validitySEXP);
+    rcpp_result_gen = Rcpp::wrap(libtiledb_query_buffer_var_char_create(vec, nullable, legacy_validity));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -1697,16 +2050,16 @@ BEGIN_RCPP
 END_RCPP
 }
 // libtiledb_query_buffer_alloc_ptr
-XPtr<query_buf_t> libtiledb_query_buffer_alloc_ptr(XPtr<tiledb::Array> array, std::string domaintype, R_xlen_t ncells, bool nullable);
-RcppExport SEXP _tiledb_libtiledb_query_buffer_alloc_ptr(SEXP arraySEXP, SEXP domaintypeSEXP, SEXP ncellsSEXP, SEXP nullableSEXP) {
+XPtr<query_buf_t> libtiledb_query_buffer_alloc_ptr(std::string domaintype, R_xlen_t ncells, bool nullable, int32_t numvar);
+RcppExport SEXP _tiledb_libtiledb_query_buffer_alloc_ptr(SEXP domaintypeSEXP, SEXP ncellsSEXP, SEXP nullableSEXP, SEXP numvarSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< XPtr<tiledb::Array> >::type array(arraySEXP);
     Rcpp::traits::input_parameter< std::string >::type domaintype(domaintypeSEXP);
     Rcpp::traits::input_parameter< R_xlen_t >::type ncells(ncellsSEXP);
     Rcpp::traits::input_parameter< bool >::type nullable(nullableSEXP);
-    rcpp_result_gen = Rcpp::wrap(libtiledb_query_buffer_alloc_ptr(array, domaintype, ncells, nullable));
+    Rcpp::traits::input_parameter< int32_t >::type numvar(numvarSEXP);
+    rcpp_result_gen = Rcpp::wrap(libtiledb_query_buffer_alloc_ptr(domaintype, ncells, nullable, numvar));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -1768,17 +2121,6 @@ BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< XPtr<tiledb::Query> >::type query(querySEXP);
     rcpp_result_gen = Rcpp::wrap(libtiledb_query_submit(query));
-    return rcpp_result_gen;
-END_RCPP
-}
-// libtiledb_query_submit_async
-XPtr<tiledb::Query> libtiledb_query_submit_async(XPtr<tiledb::Query> query);
-RcppExport SEXP _tiledb_libtiledb_query_submit_async(SEXP querySEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< XPtr<tiledb::Query> >::type query(querySEXP);
-    rcpp_result_gen = Rcpp::wrap(libtiledb_query_submit_async(query));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -1865,34 +2207,57 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// libtiledb_query_add_range
-XPtr<tiledb::Query> libtiledb_query_add_range(XPtr<tiledb::Query> query, int iidx, SEXP starts, SEXP ends, SEXP strides);
-RcppExport SEXP _tiledb_libtiledb_query_add_range(SEXP querySEXP, SEXP iidxSEXP, SEXP startsSEXP, SEXP endsSEXP, SEXP stridesSEXP) {
+// libtiledb_subarray
+XPtr<tiledb::Subarray> libtiledb_subarray(XPtr<tiledb::Query> query);
+RcppExport SEXP _tiledb_libtiledb_subarray(SEXP querySEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< XPtr<tiledb::Query> >::type query(querySEXP);
+    rcpp_result_gen = Rcpp::wrap(libtiledb_subarray(query));
+    return rcpp_result_gen;
+END_RCPP
+}
+// libtiledb_subarray_add_range
+XPtr<tiledb::Subarray> libtiledb_subarray_add_range(XPtr<tiledb::Subarray> subarr, int iidx, SEXP starts, SEXP ends, SEXP strides);
+RcppExport SEXP _tiledb_libtiledb_subarray_add_range(SEXP subarrSEXP, SEXP iidxSEXP, SEXP startsSEXP, SEXP endsSEXP, SEXP stridesSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< XPtr<tiledb::Subarray> >::type subarr(subarrSEXP);
     Rcpp::traits::input_parameter< int >::type iidx(iidxSEXP);
     Rcpp::traits::input_parameter< SEXP >::type starts(startsSEXP);
     Rcpp::traits::input_parameter< SEXP >::type ends(endsSEXP);
     Rcpp::traits::input_parameter< SEXP >::type strides(stridesSEXP);
-    rcpp_result_gen = Rcpp::wrap(libtiledb_query_add_range(query, iidx, starts, ends, strides));
+    rcpp_result_gen = Rcpp::wrap(libtiledb_subarray_add_range(subarr, iidx, starts, ends, strides));
     return rcpp_result_gen;
 END_RCPP
 }
-// libtiledb_query_add_range_with_type
-XPtr<tiledb::Query> libtiledb_query_add_range_with_type(XPtr<tiledb::Query> query, int iidx, std::string typestr, SEXP starts, SEXP ends, SEXP strides);
-RcppExport SEXP _tiledb_libtiledb_query_add_range_with_type(SEXP querySEXP, SEXP iidxSEXP, SEXP typestrSEXP, SEXP startsSEXP, SEXP endsSEXP, SEXP stridesSEXP) {
+// libtiledb_subarray_add_range_with_type
+XPtr<tiledb::Subarray> libtiledb_subarray_add_range_with_type(XPtr<tiledb::Subarray> subarr, int iidx, std::string typestr, SEXP starts, SEXP ends, SEXP strides);
+RcppExport SEXP _tiledb_libtiledb_subarray_add_range_with_type(SEXP subarrSEXP, SEXP iidxSEXP, SEXP typestrSEXP, SEXP startsSEXP, SEXP endsSEXP, SEXP stridesSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< XPtr<tiledb::Query> >::type query(querySEXP);
+    Rcpp::traits::input_parameter< XPtr<tiledb::Subarray> >::type subarr(subarrSEXP);
     Rcpp::traits::input_parameter< int >::type iidx(iidxSEXP);
     Rcpp::traits::input_parameter< std::string >::type typestr(typestrSEXP);
     Rcpp::traits::input_parameter< SEXP >::type starts(startsSEXP);
     Rcpp::traits::input_parameter< SEXP >::type ends(endsSEXP);
     Rcpp::traits::input_parameter< SEXP >::type strides(stridesSEXP);
-    rcpp_result_gen = Rcpp::wrap(libtiledb_query_add_range_with_type(query, iidx, typestr, starts, ends, strides));
+    rcpp_result_gen = Rcpp::wrap(libtiledb_subarray_add_range_with_type(subarr, iidx, typestr, starts, ends, strides));
+    return rcpp_result_gen;
+END_RCPP
+}
+// libtiledb_query_set_subarray_object
+XPtr<tiledb::Query> libtiledb_query_set_subarray_object(XPtr<tiledb::Query> query, XPtr<tiledb::Subarray> subarr);
+RcppExport SEXP _tiledb_libtiledb_query_set_subarray_object(SEXP querySEXP, SEXP subarrSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< XPtr<tiledb::Query> >::type query(querySEXP);
+    Rcpp::traits::input_parameter< XPtr<tiledb::Subarray> >::type subarr(subarrSEXP);
+    rcpp_result_gen = Rcpp::wrap(libtiledb_query_set_subarray_object(query, subarr));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -2029,6 +2394,31 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// libtiledb_query_get_ctx
+XPtr<tiledb::Context> libtiledb_query_get_ctx(XPtr<tiledb::Query> query);
+RcppExport SEXP _tiledb_libtiledb_query_get_ctx(SEXP querySEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< XPtr<tiledb::Query> >::type query(querySEXP);
+    rcpp_result_gen = Rcpp::wrap(libtiledb_query_get_ctx(query));
+    return rcpp_result_gen;
+END_RCPP
+}
+// libtiledb_query_apply_aggregate
+SEXP libtiledb_query_apply_aggregate(XPtr<tiledb::Query> query, std::string attribute_name, std::string operator_name, bool nullable);
+RcppExport SEXP _tiledb_libtiledb_query_apply_aggregate(SEXP querySEXP, SEXP attribute_nameSEXP, SEXP operator_nameSEXP, SEXP nullableSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< XPtr<tiledb::Query> >::type query(querySEXP);
+    Rcpp::traits::input_parameter< std::string >::type attribute_name(attribute_nameSEXP);
+    Rcpp::traits::input_parameter< std::string >::type operator_name(operator_nameSEXP);
+    Rcpp::traits::input_parameter< bool >::type nullable(nullableSEXP);
+    rcpp_result_gen = Rcpp::wrap(libtiledb_query_apply_aggregate(query, attribute_name, operator_name, nullable));
+    return rcpp_result_gen;
+END_RCPP
+}
 // libtiledb_query_condition
 XPtr<tiledb::QueryCondition> libtiledb_query_condition(XPtr<tiledb::Context> ctx);
 RcppExport SEXP _tiledb_libtiledb_query_condition(SEXP ctxSEXP) {
@@ -2067,6 +2457,32 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// libtiledb_query_condition_set_use_enumeration
+void libtiledb_query_condition_set_use_enumeration(XPtr<tiledb::Context> ctx, XPtr<tiledb::QueryCondition> cond, bool use_enumeration);
+RcppExport SEXP _tiledb_libtiledb_query_condition_set_use_enumeration(SEXP ctxSEXP, SEXP condSEXP, SEXP use_enumerationSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< XPtr<tiledb::Context> >::type ctx(ctxSEXP);
+    Rcpp::traits::input_parameter< XPtr<tiledb::QueryCondition> >::type cond(condSEXP);
+    Rcpp::traits::input_parameter< bool >::type use_enumeration(use_enumerationSEXP);
+    libtiledb_query_condition_set_use_enumeration(ctx, cond, use_enumeration);
+    return R_NilValue;
+END_RCPP
+}
+// libtiledb_query_condition_create
+XPtr<tiledb::QueryCondition> libtiledb_query_condition_create(XPtr<tiledb::Context> ctx, const std::string& name, SEXP vec, const std::string& cond_op_string);
+RcppExport SEXP _tiledb_libtiledb_query_condition_create(SEXP ctxSEXP, SEXP nameSEXP, SEXP vecSEXP, SEXP cond_op_stringSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< XPtr<tiledb::Context> >::type ctx(ctxSEXP);
+    Rcpp::traits::input_parameter< const std::string& >::type name(nameSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type vec(vecSEXP);
+    Rcpp::traits::input_parameter< const std::string& >::type cond_op_string(cond_op_stringSEXP);
+    rcpp_result_gen = Rcpp::wrap(libtiledb_query_condition_create(ctx, name, vec, cond_op_string));
+    return rcpp_result_gen;
+END_RCPP
+}
 // libtiledb_zip_coords_numeric
 NumericVector libtiledb_zip_coords_numeric(List coords, R_xlen_t coord_length);
 RcppExport SEXP _tiledb_libtiledb_zip_coords_numeric(SEXP coordsSEXP, SEXP coord_lengthSEXP) {
@@ -2091,15 +2507,15 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// libtiledb_group_create
-std::string libtiledb_group_create(XPtr<tiledb::Context> ctx, std::string uri);
-RcppExport SEXP _tiledb_libtiledb_group_create(SEXP ctxSEXP, SEXP uriSEXP) {
+// libtiledb_create_group
+std::string libtiledb_create_group(XPtr<tiledb::Context> ctx, std::string uri);
+RcppExport SEXP _tiledb_libtiledb_create_group(SEXP ctxSEXP, SEXP uriSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< XPtr<tiledb::Context> >::type ctx(ctxSEXP);
     Rcpp::traits::input_parameter< std::string >::type uri(uriSEXP);
-    rcpp_result_gen = Rcpp::wrap(libtiledb_group_create(ctx, uri));
+    rcpp_result_gen = Rcpp::wrap(libtiledb_create_group(ctx, uri));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -2422,6 +2838,42 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// libtiledb_vfs_copy_file
+std::string libtiledb_vfs_copy_file(XPtr<tiledb::VFS> vfs, std::string old_uri, std::string new_uri);
+RcppExport SEXP _tiledb_libtiledb_vfs_copy_file(SEXP vfsSEXP, SEXP old_uriSEXP, SEXP new_uriSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< XPtr<tiledb::VFS> >::type vfs(vfsSEXP);
+    Rcpp::traits::input_parameter< std::string >::type old_uri(old_uriSEXP);
+    Rcpp::traits::input_parameter< std::string >::type new_uri(new_uriSEXP);
+    rcpp_result_gen = Rcpp::wrap(libtiledb_vfs_copy_file(vfs, old_uri, new_uri));
+    return rcpp_result_gen;
+END_RCPP
+}
+// libtiledb_vfs_fh_free
+void libtiledb_vfs_fh_free(XPtr<vfs_fh_t> fhxp);
+RcppExport SEXP _tiledb_libtiledb_vfs_fh_free(SEXP fhxpSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< XPtr<vfs_fh_t> >::type fhxp(fhxpSEXP);
+    libtiledb_vfs_fh_free(fhxp);
+    return R_NilValue;
+END_RCPP
+}
+// libtiledb_vfs_ls_recursive
+Rcpp::DataFrame libtiledb_vfs_ls_recursive(XPtr<tiledb::Context> ctx, XPtr<tiledb::VFS> vfs, const std::string& uri);
+RcppExport SEXP _tiledb_libtiledb_vfs_ls_recursive(SEXP ctxSEXP, SEXP vfsSEXP, SEXP uriSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< XPtr<tiledb::Context> >::type ctx(ctxSEXP);
+    Rcpp::traits::input_parameter< XPtr<tiledb::VFS> >::type vfs(vfsSEXP);
+    Rcpp::traits::input_parameter< const std::string& >::type uri(uriSEXP);
+    rcpp_result_gen = Rcpp::wrap(libtiledb_vfs_ls_recursive(ctx, vfs, uri));
+    return rcpp_result_gen;
+END_RCPP
+}
 // libtiledb_stats_enable
 void libtiledb_stats_enable();
 RcppExport SEXP _tiledb_libtiledb_stats_enable() {
@@ -2460,13 +2912,13 @@ BEGIN_RCPP
 END_RCPP
 }
 // libtiledb_stats_raw_dump
-void libtiledb_stats_raw_dump(std::string path);
-RcppExport SEXP _tiledb_libtiledb_stats_raw_dump(SEXP pathSEXP) {
+std::string libtiledb_stats_raw_dump();
+RcppExport SEXP _tiledb_libtiledb_stats_raw_dump() {
 BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< std::string >::type path(pathSEXP);
-    libtiledb_stats_raw_dump(path);
-    return R_NilValue;
+    rcpp_result_gen = Rcpp::wrap(libtiledb_stats_raw_dump());
+    return rcpp_result_gen;
 END_RCPP
 }
 // libtiledb_stats_raw_get
@@ -2707,16 +3159,523 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// libtiledb_group
+XPtr<tiledb::Group> libtiledb_group(XPtr<tiledb::Context> ctx, const std::string& uri, const std::string& querytypestr);
+RcppExport SEXP _tiledb_libtiledb_group(SEXP ctxSEXP, SEXP uriSEXP, SEXP querytypestrSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< XPtr<tiledb::Context> >::type ctx(ctxSEXP);
+    Rcpp::traits::input_parameter< const std::string& >::type uri(uriSEXP);
+    Rcpp::traits::input_parameter< const std::string& >::type querytypestr(querytypestrSEXP);
+    rcpp_result_gen = Rcpp::wrap(libtiledb_group(ctx, uri, querytypestr));
+    return rcpp_result_gen;
+END_RCPP
+}
+// libtiledb_group_with_config
+XPtr<tiledb::Group> libtiledb_group_with_config(XPtr<tiledb::Context> ctx, const std::string& uri, const std::string& querytypestr, XPtr<tiledb::Config> cfg);
+RcppExport SEXP _tiledb_libtiledb_group_with_config(SEXP ctxSEXP, SEXP uriSEXP, SEXP querytypestrSEXP, SEXP cfgSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< XPtr<tiledb::Context> >::type ctx(ctxSEXP);
+    Rcpp::traits::input_parameter< const std::string& >::type uri(uriSEXP);
+    Rcpp::traits::input_parameter< const std::string& >::type querytypestr(querytypestrSEXP);
+    Rcpp::traits::input_parameter< XPtr<tiledb::Config> >::type cfg(cfgSEXP);
+    rcpp_result_gen = Rcpp::wrap(libtiledb_group_with_config(ctx, uri, querytypestr, cfg));
+    return rcpp_result_gen;
+END_RCPP
+}
+// libtiledb_group_open
+XPtr<tiledb::Group> libtiledb_group_open(XPtr<tiledb::Group> grp, const std::string& querytypestr);
+RcppExport SEXP _tiledb_libtiledb_group_open(SEXP grpSEXP, SEXP querytypestrSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< XPtr<tiledb::Group> >::type grp(grpSEXP);
+    Rcpp::traits::input_parameter< const std::string& >::type querytypestr(querytypestrSEXP);
+    rcpp_result_gen = Rcpp::wrap(libtiledb_group_open(grp, querytypestr));
+    return rcpp_result_gen;
+END_RCPP
+}
+// libtiledb_group_set_config
+XPtr<tiledb::Group> libtiledb_group_set_config(XPtr<tiledb::Group> grp, XPtr<tiledb::Config> cfg);
+RcppExport SEXP _tiledb_libtiledb_group_set_config(SEXP grpSEXP, SEXP cfgSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< XPtr<tiledb::Group> >::type grp(grpSEXP);
+    Rcpp::traits::input_parameter< XPtr<tiledb::Config> >::type cfg(cfgSEXP);
+    rcpp_result_gen = Rcpp::wrap(libtiledb_group_set_config(grp, cfg));
+    return rcpp_result_gen;
+END_RCPP
+}
+// libtiledb_group_get_config
+XPtr<tiledb::Config> libtiledb_group_get_config(XPtr<tiledb::Group> grp);
+RcppExport SEXP _tiledb_libtiledb_group_get_config(SEXP grpSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< XPtr<tiledb::Group> >::type grp(grpSEXP);
+    rcpp_result_gen = Rcpp::wrap(libtiledb_group_get_config(grp));
+    return rcpp_result_gen;
+END_RCPP
+}
+// libtiledb_group_close
+XPtr<tiledb::Group> libtiledb_group_close(XPtr<tiledb::Group> grp);
+RcppExport SEXP _tiledb_libtiledb_group_close(SEXP grpSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< XPtr<tiledb::Group> >::type grp(grpSEXP);
+    rcpp_result_gen = Rcpp::wrap(libtiledb_group_close(grp));
+    return rcpp_result_gen;
+END_RCPP
+}
+// libtiledb_group_create
+std::string libtiledb_group_create(XPtr<tiledb::Context> ctx, const std::string& uri);
+RcppExport SEXP _tiledb_libtiledb_group_create(SEXP ctxSEXP, SEXP uriSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< XPtr<tiledb::Context> >::type ctx(ctxSEXP);
+    Rcpp::traits::input_parameter< const std::string& >::type uri(uriSEXP);
+    rcpp_result_gen = Rcpp::wrap(libtiledb_group_create(ctx, uri));
+    return rcpp_result_gen;
+END_RCPP
+}
+// libtiledb_group_is_open
+bool libtiledb_group_is_open(XPtr<tiledb::Group> grp);
+RcppExport SEXP _tiledb_libtiledb_group_is_open(SEXP grpSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< XPtr<tiledb::Group> >::type grp(grpSEXP);
+    rcpp_result_gen = Rcpp::wrap(libtiledb_group_is_open(grp));
+    return rcpp_result_gen;
+END_RCPP
+}
+// libtiledb_group_uri
+std::string libtiledb_group_uri(XPtr<tiledb::Group> grp);
+RcppExport SEXP _tiledb_libtiledb_group_uri(SEXP grpSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< XPtr<tiledb::Group> >::type grp(grpSEXP);
+    rcpp_result_gen = Rcpp::wrap(libtiledb_group_uri(grp));
+    return rcpp_result_gen;
+END_RCPP
+}
+// libtiledb_group_query_type
+std::string libtiledb_group_query_type(XPtr<tiledb::Group> grp);
+RcppExport SEXP _tiledb_libtiledb_group_query_type(SEXP grpSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< XPtr<tiledb::Group> >::type grp(grpSEXP);
+    rcpp_result_gen = Rcpp::wrap(libtiledb_group_query_type(grp));
+    return rcpp_result_gen;
+END_RCPP
+}
+// libtiledb_group_put_metadata
+bool libtiledb_group_put_metadata(XPtr<tiledb::Group> grp, std::string key, SEXP obj);
+RcppExport SEXP _tiledb_libtiledb_group_put_metadata(SEXP grpSEXP, SEXP keySEXP, SEXP objSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< XPtr<tiledb::Group> >::type grp(grpSEXP);
+    Rcpp::traits::input_parameter< std::string >::type key(keySEXP);
+    Rcpp::traits::input_parameter< SEXP >::type obj(objSEXP);
+    rcpp_result_gen = Rcpp::wrap(libtiledb_group_put_metadata(grp, key, obj));
+    return rcpp_result_gen;
+END_RCPP
+}
+// libtiledb_group_delete_metadata
+XPtr<tiledb::Group> libtiledb_group_delete_metadata(XPtr<tiledb::Group> grp, std::string key);
+RcppExport SEXP _tiledb_libtiledb_group_delete_metadata(SEXP grpSEXP, SEXP keySEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< XPtr<tiledb::Group> >::type grp(grpSEXP);
+    Rcpp::traits::input_parameter< std::string >::type key(keySEXP);
+    rcpp_result_gen = Rcpp::wrap(libtiledb_group_delete_metadata(grp, key));
+    return rcpp_result_gen;
+END_RCPP
+}
+// libtiledb_group_get_metadata
+SEXP libtiledb_group_get_metadata(XPtr<tiledb::Group> grp, std::string key);
+RcppExport SEXP _tiledb_libtiledb_group_get_metadata(SEXP grpSEXP, SEXP keySEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< XPtr<tiledb::Group> >::type grp(grpSEXP);
+    Rcpp::traits::input_parameter< std::string >::type key(keySEXP);
+    rcpp_result_gen = Rcpp::wrap(libtiledb_group_get_metadata(grp, key));
+    return rcpp_result_gen;
+END_RCPP
+}
+// libtiledb_group_has_metadata
+bool libtiledb_group_has_metadata(XPtr<tiledb::Group> grp, std::string key);
+RcppExport SEXP _tiledb_libtiledb_group_has_metadata(SEXP grpSEXP, SEXP keySEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< XPtr<tiledb::Group> >::type grp(grpSEXP);
+    Rcpp::traits::input_parameter< std::string >::type key(keySEXP);
+    rcpp_result_gen = Rcpp::wrap(libtiledb_group_has_metadata(grp, key));
+    return rcpp_result_gen;
+END_RCPP
+}
+// libtiledb_group_metadata_num
+double libtiledb_group_metadata_num(XPtr<tiledb::Group> grp);
+RcppExport SEXP _tiledb_libtiledb_group_metadata_num(SEXP grpSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< XPtr<tiledb::Group> >::type grp(grpSEXP);
+    rcpp_result_gen = Rcpp::wrap(libtiledb_group_metadata_num(grp));
+    return rcpp_result_gen;
+END_RCPP
+}
+// libtiledb_group_get_metadata_from_index
+SEXP libtiledb_group_get_metadata_from_index(XPtr<tiledb::Group> grp, int idx);
+RcppExport SEXP _tiledb_libtiledb_group_get_metadata_from_index(SEXP grpSEXP, SEXP idxSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< XPtr<tiledb::Group> >::type grp(grpSEXP);
+    Rcpp::traits::input_parameter< int >::type idx(idxSEXP);
+    rcpp_result_gen = Rcpp::wrap(libtiledb_group_get_metadata_from_index(grp, idx));
+    return rcpp_result_gen;
+END_RCPP
+}
+// libtiledb_group_add_member
+XPtr<tiledb::Group> libtiledb_group_add_member(XPtr<tiledb::Group> grp, std::string uri, bool relative, Nullable<Rcpp::String> optional_name);
+RcppExport SEXP _tiledb_libtiledb_group_add_member(SEXP grpSEXP, SEXP uriSEXP, SEXP relativeSEXP, SEXP optional_nameSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< XPtr<tiledb::Group> >::type grp(grpSEXP);
+    Rcpp::traits::input_parameter< std::string >::type uri(uriSEXP);
+    Rcpp::traits::input_parameter< bool >::type relative(relativeSEXP);
+    Rcpp::traits::input_parameter< Nullable<Rcpp::String> >::type optional_name(optional_nameSEXP);
+    rcpp_result_gen = Rcpp::wrap(libtiledb_group_add_member(grp, uri, relative, optional_name));
+    return rcpp_result_gen;
+END_RCPP
+}
+// libtiledb_group_remove_member
+XPtr<tiledb::Group> libtiledb_group_remove_member(XPtr<tiledb::Group> grp, std::string uri);
+RcppExport SEXP _tiledb_libtiledb_group_remove_member(SEXP grpSEXP, SEXP uriSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< XPtr<tiledb::Group> >::type grp(grpSEXP);
+    Rcpp::traits::input_parameter< std::string >::type uri(uriSEXP);
+    rcpp_result_gen = Rcpp::wrap(libtiledb_group_remove_member(grp, uri));
+    return rcpp_result_gen;
+END_RCPP
+}
+// libtiledb_group_member_count
+double libtiledb_group_member_count(XPtr<tiledb::Group> grp);
+RcppExport SEXP _tiledb_libtiledb_group_member_count(SEXP grpSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< XPtr<tiledb::Group> >::type grp(grpSEXP);
+    rcpp_result_gen = Rcpp::wrap(libtiledb_group_member_count(grp));
+    return rcpp_result_gen;
+END_RCPP
+}
+// libtiledb_group_member
+CharacterVector libtiledb_group_member(XPtr<tiledb::Group> grp, int idx);
+RcppExport SEXP _tiledb_libtiledb_group_member(SEXP grpSEXP, SEXP idxSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< XPtr<tiledb::Group> >::type grp(grpSEXP);
+    Rcpp::traits::input_parameter< int >::type idx(idxSEXP);
+    rcpp_result_gen = Rcpp::wrap(libtiledb_group_member(grp, idx));
+    return rcpp_result_gen;
+END_RCPP
+}
+// libtiledb_group_dump
+std::string libtiledb_group_dump(XPtr<tiledb::Group> grp, bool recursive);
+RcppExport SEXP _tiledb_libtiledb_group_dump(SEXP grpSEXP, SEXP recursiveSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< XPtr<tiledb::Group> >::type grp(grpSEXP);
+    Rcpp::traits::input_parameter< bool >::type recursive(recursiveSEXP);
+    rcpp_result_gen = Rcpp::wrap(libtiledb_group_dump(grp, recursive));
+    return rcpp_result_gen;
+END_RCPP
+}
+// libtiledb_group_is_relative
+bool libtiledb_group_is_relative(XPtr<tiledb::Group> grp, const std::string& name);
+RcppExport SEXP _tiledb_libtiledb_group_is_relative(SEXP grpSEXP, SEXP nameSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< XPtr<tiledb::Group> >::type grp(grpSEXP);
+    Rcpp::traits::input_parameter< const std::string& >::type name(nameSEXP);
+    rcpp_result_gen = Rcpp::wrap(libtiledb_group_is_relative(grp, name));
+    return rcpp_result_gen;
+END_RCPP
+}
+// libtiledb_group_delete
+void libtiledb_group_delete(XPtr<tiledb::Group> grp, const std::string& uri, const bool recursive);
+RcppExport SEXP _tiledb_libtiledb_group_delete(SEXP grpSEXP, SEXP uriSEXP, SEXP recursiveSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< XPtr<tiledb::Group> >::type grp(grpSEXP);
+    Rcpp::traits::input_parameter< const std::string& >::type uri(uriSEXP);
+    Rcpp::traits::input_parameter< const bool >::type recursive(recursiveSEXP);
+    libtiledb_group_delete(grp, uri, recursive);
+    return R_NilValue;
+END_RCPP
+}
+// libtiledb_filestore_schema_create
+XPtr<tiledb::ArraySchema> libtiledb_filestore_schema_create(XPtr<tiledb::Context> ctx, std::string uri);
+RcppExport SEXP _tiledb_libtiledb_filestore_schema_create(SEXP ctxSEXP, SEXP uriSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< XPtr<tiledb::Context> >::type ctx(ctxSEXP);
+    Rcpp::traits::input_parameter< std::string >::type uri(uriSEXP);
+    rcpp_result_gen = Rcpp::wrap(libtiledb_filestore_schema_create(ctx, uri));
+    return rcpp_result_gen;
+END_RCPP
+}
+// libtiledb_filestore_uri_import
+bool libtiledb_filestore_uri_import(XPtr<tiledb::Context> ctx, std::string filestore_uri, std::string file_uri);
+RcppExport SEXP _tiledb_libtiledb_filestore_uri_import(SEXP ctxSEXP, SEXP filestore_uriSEXP, SEXP file_uriSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< XPtr<tiledb::Context> >::type ctx(ctxSEXP);
+    Rcpp::traits::input_parameter< std::string >::type filestore_uri(filestore_uriSEXP);
+    Rcpp::traits::input_parameter< std::string >::type file_uri(file_uriSEXP);
+    rcpp_result_gen = Rcpp::wrap(libtiledb_filestore_uri_import(ctx, filestore_uri, file_uri));
+    return rcpp_result_gen;
+END_RCPP
+}
+// libtiledb_filestore_uri_export
+bool libtiledb_filestore_uri_export(XPtr<tiledb::Context> ctx, std::string file_uri, std::string filestore_uri);
+RcppExport SEXP _tiledb_libtiledb_filestore_uri_export(SEXP ctxSEXP, SEXP file_uriSEXP, SEXP filestore_uriSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< XPtr<tiledb::Context> >::type ctx(ctxSEXP);
+    Rcpp::traits::input_parameter< std::string >::type file_uri(file_uriSEXP);
+    Rcpp::traits::input_parameter< std::string >::type filestore_uri(filestore_uriSEXP);
+    rcpp_result_gen = Rcpp::wrap(libtiledb_filestore_uri_export(ctx, file_uri, filestore_uri));
+    return rcpp_result_gen;
+END_RCPP
+}
+// libtiledb_filestore_buffer_import
+bool libtiledb_filestore_buffer_import(XPtr<tiledb::Context> ctx, std::string filestore_uri, std::string buf, size_t size);
+RcppExport SEXP _tiledb_libtiledb_filestore_buffer_import(SEXP ctxSEXP, SEXP filestore_uriSEXP, SEXP bufSEXP, SEXP sizeSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< XPtr<tiledb::Context> >::type ctx(ctxSEXP);
+    Rcpp::traits::input_parameter< std::string >::type filestore_uri(filestore_uriSEXP);
+    Rcpp::traits::input_parameter< std::string >::type buf(bufSEXP);
+    Rcpp::traits::input_parameter< size_t >::type size(sizeSEXP);
+    rcpp_result_gen = Rcpp::wrap(libtiledb_filestore_buffer_import(ctx, filestore_uri, buf, size));
+    return rcpp_result_gen;
+END_RCPP
+}
+// libtiledb_filestore_buffer_export
+std::string libtiledb_filestore_buffer_export(XPtr<tiledb::Context> ctx, std::string filestore_uri, size_t offset, size_t size);
+RcppExport SEXP _tiledb_libtiledb_filestore_buffer_export(SEXP ctxSEXP, SEXP filestore_uriSEXP, SEXP offsetSEXP, SEXP sizeSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< XPtr<tiledb::Context> >::type ctx(ctxSEXP);
+    Rcpp::traits::input_parameter< std::string >::type filestore_uri(filestore_uriSEXP);
+    Rcpp::traits::input_parameter< size_t >::type offset(offsetSEXP);
+    Rcpp::traits::input_parameter< size_t >::type size(sizeSEXP);
+    rcpp_result_gen = Rcpp::wrap(libtiledb_filestore_buffer_export(ctx, filestore_uri, offset, size));
+    return rcpp_result_gen;
+END_RCPP
+}
+// libtiledb_filestore_size
+size_t libtiledb_filestore_size(XPtr<tiledb::Context> ctx, std::string filestore_uri);
+RcppExport SEXP _tiledb_libtiledb_filestore_size(SEXP ctxSEXP, SEXP filestore_uriSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< XPtr<tiledb::Context> >::type ctx(ctxSEXP);
+    Rcpp::traits::input_parameter< std::string >::type filestore_uri(filestore_uriSEXP);
+    rcpp_result_gen = Rcpp::wrap(libtiledb_filestore_size(ctx, filestore_uri));
+    return rcpp_result_gen;
+END_RCPP
+}
+// libtiledb_mime_type_to_str
+std::string libtiledb_mime_type_to_str(int32_t mime_type);
+RcppExport SEXP _tiledb_libtiledb_mime_type_to_str(SEXP mime_typeSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< int32_t >::type mime_type(mime_typeSEXP);
+    rcpp_result_gen = Rcpp::wrap(libtiledb_mime_type_to_str(mime_type));
+    return rcpp_result_gen;
+END_RCPP
+}
+// libtiledb_mime_type_from_str
+int32_t libtiledb_mime_type_from_str(std::string mime_type);
+RcppExport SEXP _tiledb_libtiledb_mime_type_from_str(SEXP mime_typeSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< std::string >::type mime_type(mime_typeSEXP);
+    rcpp_result_gen = Rcpp::wrap(libtiledb_mime_type_from_str(mime_type));
+    return rcpp_result_gen;
+END_RCPP
+}
+// libtiledb_ndrectangle_create
+XPtr<tiledb::NDRectangle> libtiledb_ndrectangle_create(XPtr<tiledb::Context> ctx, XPtr<tiledb::Domain> dom);
+RcppExport SEXP _tiledb_libtiledb_ndrectangle_create(SEXP ctxSEXP, SEXP domSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< XPtr<tiledb::Context> >::type ctx(ctxSEXP);
+    Rcpp::traits::input_parameter< XPtr<tiledb::Domain> >::type dom(domSEXP);
+    rcpp_result_gen = Rcpp::wrap(libtiledb_ndrectangle_create(ctx, dom));
+    return rcpp_result_gen;
+END_RCPP
+}
+// libtiledb_ndrectangle_set_range
+XPtr<tiledb::NDRectangle> libtiledb_ndrectangle_set_range(XPtr<tiledb::NDRectangle> ndr, std::string& datatype, std::string& dimname, SEXP start, SEXP end);
+RcppExport SEXP _tiledb_libtiledb_ndrectangle_set_range(SEXP ndrSEXP, SEXP datatypeSEXP, SEXP dimnameSEXP, SEXP startSEXP, SEXP endSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< XPtr<tiledb::NDRectangle> >::type ndr(ndrSEXP);
+    Rcpp::traits::input_parameter< std::string& >::type datatype(datatypeSEXP);
+    Rcpp::traits::input_parameter< std::string& >::type dimname(dimnameSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type start(startSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type end(endSEXP);
+    rcpp_result_gen = Rcpp::wrap(libtiledb_ndrectangle_set_range(ndr, datatype, dimname, start, end));
+    return rcpp_result_gen;
+END_RCPP
+}
+// libtiledb_ndrectangle_get_range
+SEXP libtiledb_ndrectangle_get_range(XPtr<tiledb::NDRectangle> ndr, std::string& dimname, std::string& dtype);
+RcppExport SEXP _tiledb_libtiledb_ndrectangle_get_range(SEXP ndrSEXP, SEXP dimnameSEXP, SEXP dtypeSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< XPtr<tiledb::NDRectangle> >::type ndr(ndrSEXP);
+    Rcpp::traits::input_parameter< std::string& >::type dimname(dimnameSEXP);
+    Rcpp::traits::input_parameter< std::string& >::type dtype(dtypeSEXP);
+    rcpp_result_gen = Rcpp::wrap(libtiledb_ndrectangle_get_range(ndr, dimname, dtype));
+    return rcpp_result_gen;
+END_RCPP
+}
+// libtiledb_ndrectangle_dim_num
+int libtiledb_ndrectangle_dim_num(XPtr<tiledb::NDRectangle> ndr);
+RcppExport SEXP _tiledb_libtiledb_ndrectangle_dim_num(SEXP ndrSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< XPtr<tiledb::NDRectangle> >::type ndr(ndrSEXP);
+    rcpp_result_gen = Rcpp::wrap(libtiledb_ndrectangle_dim_num(ndr));
+    return rcpp_result_gen;
+END_RCPP
+}
+// libtiledb_ndrectangle_datatype
+std::string libtiledb_ndrectangle_datatype(XPtr<tiledb::NDRectangle> ndr, const std::string& name);
+RcppExport SEXP _tiledb_libtiledb_ndrectangle_datatype(SEXP ndrSEXP, SEXP nameSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< XPtr<tiledb::NDRectangle> >::type ndr(ndrSEXP);
+    Rcpp::traits::input_parameter< const std::string& >::type name(nameSEXP);
+    rcpp_result_gen = Rcpp::wrap(libtiledb_ndrectangle_datatype(ndr, name));
+    return rcpp_result_gen;
+END_RCPP
+}
+// libtiledb_ndrectangle_datatype_by_ind
+std::string libtiledb_ndrectangle_datatype_by_ind(XPtr<tiledb::NDRectangle> ndr, int dim);
+RcppExport SEXP _tiledb_libtiledb_ndrectangle_datatype_by_ind(SEXP ndrSEXP, SEXP dimSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< XPtr<tiledb::NDRectangle> >::type ndr(ndrSEXP);
+    Rcpp::traits::input_parameter< int >::type dim(dimSEXP);
+    rcpp_result_gen = Rcpp::wrap(libtiledb_ndrectangle_datatype_by_ind(ndr, dim));
+    return rcpp_result_gen;
+END_RCPP
+}
+// libtiledb_current_domain_create
+XPtr<tiledb::CurrentDomain> libtiledb_current_domain_create(XPtr<tiledb::Context> ctx);
+RcppExport SEXP _tiledb_libtiledb_current_domain_create(SEXP ctxSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< XPtr<tiledb::Context> >::type ctx(ctxSEXP);
+    rcpp_result_gen = Rcpp::wrap(libtiledb_current_domain_create(ctx));
+    return rcpp_result_gen;
+END_RCPP
+}
+// libtiledb_current_domain_type
+std::string libtiledb_current_domain_type(XPtr<tiledb::CurrentDomain> cd);
+RcppExport SEXP _tiledb_libtiledb_current_domain_type(SEXP cdSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< XPtr<tiledb::CurrentDomain> >::type cd(cdSEXP);
+    rcpp_result_gen = Rcpp::wrap(libtiledb_current_domain_type(cd));
+    return rcpp_result_gen;
+END_RCPP
+}
+// libtiledb_current_domain_set_ndrectangle
+XPtr<tiledb::CurrentDomain> libtiledb_current_domain_set_ndrectangle(XPtr<tiledb::CurrentDomain> cd, XPtr<tiledb::NDRectangle> ndr);
+RcppExport SEXP _tiledb_libtiledb_current_domain_set_ndrectangle(SEXP cdSEXP, SEXP ndrSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< XPtr<tiledb::CurrentDomain> >::type cd(cdSEXP);
+    Rcpp::traits::input_parameter< XPtr<tiledb::NDRectangle> >::type ndr(ndrSEXP);
+    rcpp_result_gen = Rcpp::wrap(libtiledb_current_domain_set_ndrectangle(cd, ndr));
+    return rcpp_result_gen;
+END_RCPP
+}
+// libtiledb_current_domain_get_ndrectangle
+XPtr<tiledb::NDRectangle> libtiledb_current_domain_get_ndrectangle(XPtr<tiledb::CurrentDomain> cd);
+RcppExport SEXP _tiledb_libtiledb_current_domain_get_ndrectangle(SEXP cdSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< XPtr<tiledb::CurrentDomain> >::type cd(cdSEXP);
+    rcpp_result_gen = Rcpp::wrap(libtiledb_current_domain_get_ndrectangle(cd));
+    return rcpp_result_gen;
+END_RCPP
+}
+// libtiledb_current_domain_is_empty
+bool libtiledb_current_domain_is_empty(XPtr<tiledb::CurrentDomain> cd);
+RcppExport SEXP _tiledb_libtiledb_current_domain_is_empty(SEXP cdSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< XPtr<tiledb::CurrentDomain> >::type cd(cdSEXP);
+    rcpp_result_gen = Rcpp::wrap(libtiledb_current_domain_is_empty(cd));
+    return rcpp_result_gen;
+END_RCPP
+}
 // vecbuf_to_shmem
-void vecbuf_to_shmem(std::string dir, std::string name, XPtr<query_buf_t> buf, int sz);
-RcppExport SEXP _tiledb_vecbuf_to_shmem(SEXP dirSEXP, SEXP nameSEXP, SEXP bufSEXP, SEXP szSEXP) {
+void vecbuf_to_shmem(std::string dir, std::string name, XPtr<query_buf_t> buf, int sz, int numvar);
+RcppExport SEXP _tiledb_vecbuf_to_shmem(SEXP dirSEXP, SEXP nameSEXP, SEXP bufSEXP, SEXP szSEXP, SEXP numvarSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< std::string >::type dir(dirSEXP);
     Rcpp::traits::input_parameter< std::string >::type name(nameSEXP);
     Rcpp::traits::input_parameter< XPtr<query_buf_t> >::type buf(bufSEXP);
     Rcpp::traits::input_parameter< int >::type sz(szSEXP);
-    vecbuf_to_shmem(dir, name, buf, sz);
+    Rcpp::traits::input_parameter< int >::type numvar(numvarSEXP);
+    vecbuf_to_shmem(dir, name, buf, sz, numvar);
     return R_NilValue;
 END_RCPP
 }
@@ -2757,19 +3716,44 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// vfs_file
+SEXP vfs_file(std::string description, std::string mode, int verbosity);
+RcppExport SEXP _tiledb_vfs_file(SEXP descriptionSEXP, SEXP modeSEXP, SEXP verbositySEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< std::string >::type description(descriptionSEXP);
+    Rcpp::traits::input_parameter< std::string >::type mode(modeSEXP);
+    Rcpp::traits::input_parameter< int >::type verbosity(verbositySEXP);
+    rcpp_result_gen = Rcpp::wrap(vfs_file(description, mode, verbosity));
+    return rcpp_result_gen;
+END_RCPP
+}
+// tldb_init_
+void tldb_init_(SEXP nc_xptr);
+RcppExport SEXP _tiledb_tldb_init_(SEXP nc_xptrSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< SEXP >::type nc_xptr(nc_xptrSEXP);
+    tldb_init_(nc_xptr);
+    return R_NilValue;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_tiledb_allocate_arrow_array_as_double", (DL_FUNC) &_tiledb_allocate_arrow_array_as_double, 0},
-    {"_tiledb_allocate_arrow_schema_as_double", (DL_FUNC) &_tiledb_allocate_arrow_schema_as_double, 0},
-    {"_tiledb_delete_arrow_array_from_double", (DL_FUNC) &_tiledb_delete_arrow_array_from_double, 1},
-    {"_tiledb_delete_arrow_schema_from_double", (DL_FUNC) &_tiledb_delete_arrow_schema_from_double, 1},
     {"_tiledb_libtiledb_query_export_buffer", (DL_FUNC) &_tiledb_libtiledb_query_export_buffer, 3},
     {"_tiledb_libtiledb_query_import_buffer", (DL_FUNC) &_tiledb_libtiledb_query_import_buffer, 4},
-    {"_tiledb_libtiledb_query_set_coordinates", (DL_FUNC) &_tiledb_libtiledb_query_set_coordinates, 3},
-    {"_tiledb_libtiledb_coords", (DL_FUNC) &_tiledb_libtiledb_coords, 0},
+    {"_tiledb_libtiledb_query_export_arrow_table", (DL_FUNC) &_tiledb_libtiledb_query_export_arrow_table, 3},
+    {"_tiledb_libtiledb_to_arrow", (DL_FUNC) &_tiledb_libtiledb_to_arrow, 3},
+    {"_tiledb_libtiledb_allocate_column_buffers", (DL_FUNC) &_tiledb_libtiledb_allocate_column_buffers, 5},
+    {"_tiledb_nanoarrow2list", (DL_FUNC) &_tiledb_nanoarrow2list, 1},
+    {"_tiledb_makeQueryWrapper", (DL_FUNC) &_tiledb_makeQueryWrapper, 1},
+    {"_tiledb_libtiledb_query_submit_async", (DL_FUNC) &_tiledb_libtiledb_query_submit_async, 1},
+    {"_tiledb_libtiledb_array_create_with_key", (DL_FUNC) &_tiledb_libtiledb_array_create_with_key, 3},
     {"_tiledb_tiledb_datatype_string_to_sizeof", (DL_FUNC) &_tiledb_tiledb_datatype_string_to_sizeof, 1},
     {"_tiledb_tiledb_datatype_R_type", (DL_FUNC) &_tiledb_tiledb_datatype_R_type, 1},
     {"_tiledb_libtiledb_version", (DL_FUNC) &_tiledb_libtiledb_version, 0},
+    {"_tiledb_tiledb_datatype_max_value", (DL_FUNC) &_tiledb_tiledb_datatype_max_value, 1},
     {"_tiledb_libtiledb_ctx", (DL_FUNC) &_tiledb_libtiledb_ctx, 1},
     {"_tiledb_libtiledb_ctx_config", (DL_FUNC) &_tiledb_libtiledb_ctx_config, 1},
     {"_tiledb_libtiledb_ctx_is_supported_fs", (DL_FUNC) &_tiledb_libtiledb_ctx_is_supported_fs, 2},
@@ -2783,6 +3767,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_tiledb_libtiledb_config_get", (DL_FUNC) &_tiledb_libtiledb_config_get, 2},
     {"_tiledb_libtiledb_config_unset", (DL_FUNC) &_tiledb_libtiledb_config_unset, 2},
     {"_tiledb_libtiledb_config_dump", (DL_FUNC) &_tiledb_libtiledb_config_dump, 1},
+    {"_tiledb_libtiledb_as_built_dump", (DL_FUNC) &_tiledb_libtiledb_as_built_dump, 0},
     {"_tiledb_libtiledb_dim", (DL_FUNC) &_tiledb_libtiledb_dim, 5},
     {"_tiledb_libtiledb_dim_get_name", (DL_FUNC) &_tiledb_libtiledb_dim_get_name, 1},
     {"_tiledb_libtiledb_dim_get_domain", (DL_FUNC) &_tiledb_libtiledb_dim_get_domain, 1},
@@ -2823,7 +3808,13 @@ static const R_CallMethodDef CallEntries[] = {
     {"_tiledb_libtiledb_attribute_get_fill_value", (DL_FUNC) &_tiledb_libtiledb_attribute_get_fill_value, 1},
     {"_tiledb_libtiledb_attribute_set_nullable", (DL_FUNC) &_tiledb_libtiledb_attribute_set_nullable, 2},
     {"_tiledb_libtiledb_attribute_get_nullable", (DL_FUNC) &_tiledb_libtiledb_attribute_get_nullable, 1},
-    {"_tiledb_libtiledb_array_schema", (DL_FUNC) &_tiledb_libtiledb_array_schema, 8},
+    {"_tiledb_libtiledb_attribute_has_enumeration", (DL_FUNC) &_tiledb_libtiledb_attribute_has_enumeration, 2},
+    {"_tiledb_libtiledb_attribute_get_enumeration_type", (DL_FUNC) &_tiledb_libtiledb_attribute_get_enumeration_type, 3},
+    {"_tiledb_libtiledb_attribute_get_enumeration_vector", (DL_FUNC) &_tiledb_libtiledb_attribute_get_enumeration_vector, 3},
+    {"_tiledb_libtiledb_attribute_get_enumeration", (DL_FUNC) &_tiledb_libtiledb_attribute_get_enumeration, 3},
+    {"_tiledb_libtiledb_attribute_set_enumeration", (DL_FUNC) &_tiledb_libtiledb_attribute_set_enumeration, 3},
+    {"_tiledb_libtiledb_attribute_is_ordered_enumeration", (DL_FUNC) &_tiledb_libtiledb_attribute_is_ordered_enumeration, 3},
+    {"_tiledb_libtiledb_array_schema", (DL_FUNC) &_tiledb_libtiledb_array_schema, 10},
     {"_tiledb_libtiledb_array_schema_create", (DL_FUNC) &_tiledb_libtiledb_array_schema_create, 2},
     {"_tiledb_libtiledb_array_schema_load", (DL_FUNC) &_tiledb_libtiledb_array_schema_load, 2},
     {"_tiledb_libtiledb_array_schema_load_with_key", (DL_FUNC) &_tiledb_libtiledb_array_schema_load_with_key, 3},
@@ -2844,6 +3835,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_tiledb_libtiledb_array_schema_set_coords_filter_list", (DL_FUNC) &_tiledb_libtiledb_array_schema_set_coords_filter_list, 2},
     {"_tiledb_libtiledb_array_schema_get_offsets_filter_list", (DL_FUNC) &_tiledb_libtiledb_array_schema_get_offsets_filter_list, 1},
     {"_tiledb_libtiledb_array_schema_set_offsets_filter_list", (DL_FUNC) &_tiledb_libtiledb_array_schema_set_offsets_filter_list, 2},
+    {"_tiledb_libtiledb_array_schema_get_validity_filter_list", (DL_FUNC) &_tiledb_libtiledb_array_schema_get_validity_filter_list, 1},
+    {"_tiledb_libtiledb_array_schema_set_validity_filter_list", (DL_FUNC) &_tiledb_libtiledb_array_schema_set_validity_filter_list, 2},
     {"_tiledb_libtiledb_array_schema_get_attribute_num", (DL_FUNC) &_tiledb_libtiledb_array_schema_get_attribute_num, 1},
     {"_tiledb_libtiledb_array_schema_get_attribute_from_index", (DL_FUNC) &_tiledb_libtiledb_array_schema_get_attribute_from_index, 2},
     {"_tiledb_libtiledb_array_schema_get_attribute_from_name", (DL_FUNC) &_tiledb_libtiledb_array_schema_get_attribute_from_name, 2},
@@ -2851,12 +3844,21 @@ static const R_CallMethodDef CallEntries[] = {
     {"_tiledb_libtiledb_array_schema_sparse", (DL_FUNC) &_tiledb_libtiledb_array_schema_sparse, 1},
     {"_tiledb_libtiledb_array_schema_dump", (DL_FUNC) &_tiledb_libtiledb_array_schema_dump, 1},
     {"_tiledb_libtiledb_array_schema_check", (DL_FUNC) &_tiledb_libtiledb_array_schema_check, 1},
+    {"_tiledb_libtiledb_array_schema_version", (DL_FUNC) &_tiledb_libtiledb_array_schema_version, 1},
+    {"_tiledb_libtiledb_array_schema_set_enumeration", (DL_FUNC) &_tiledb_libtiledb_array_schema_set_enumeration, 7},
+    {"_tiledb_libtiledb_array_schema_set_enumeration_empty", (DL_FUNC) &_tiledb_libtiledb_array_schema_set_enumeration_empty, 7},
+    {"_tiledb_libtiledb_array_schema_get_current_domain", (DL_FUNC) &_tiledb_libtiledb_array_schema_get_current_domain, 2},
+    {"_tiledb_libtiledb_array_schema_set_current_domain", (DL_FUNC) &_tiledb_libtiledb_array_schema_set_current_domain, 3},
     {"_tiledb_libtiledb_array_schema_evolution", (DL_FUNC) &_tiledb_libtiledb_array_schema_evolution, 1},
     {"_tiledb_libtiledb_array_schema_evolution_add_attribute", (DL_FUNC) &_tiledb_libtiledb_array_schema_evolution_add_attribute, 2},
     {"_tiledb_libtiledb_array_schema_evolution_drop_attribute", (DL_FUNC) &_tiledb_libtiledb_array_schema_evolution_drop_attribute, 2},
     {"_tiledb_libtiledb_array_schema_evolution_array_evolve", (DL_FUNC) &_tiledb_libtiledb_array_schema_evolution_array_evolve, 2},
+    {"_tiledb_libtiledb_array_schema_evolution_add_enumeration", (DL_FUNC) &_tiledb_libtiledb_array_schema_evolution_add_enumeration, 6},
+    {"_tiledb_libtiledb_array_schema_evolution_add_enumeration_empty", (DL_FUNC) &_tiledb_libtiledb_array_schema_evolution_add_enumeration_empty, 6},
+    {"_tiledb_libtiledb_array_schema_evolution_drop_enumeration", (DL_FUNC) &_tiledb_libtiledb_array_schema_evolution_drop_enumeration, 2},
+    {"_tiledb_libtiledb_array_schema_evolution_extend_enumeration", (DL_FUNC) &_tiledb_libtiledb_array_schema_evolution_extend_enumeration, 7},
+    {"_tiledb_libtiledb_array_schema_evolution_expand_current_domain", (DL_FUNC) &_tiledb_libtiledb_array_schema_evolution_expand_current_domain, 2},
     {"_tiledb_libtiledb_array_create", (DL_FUNC) &_tiledb_libtiledb_array_create, 2},
-    {"_tiledb_libtiledb_array_create_with_key", (DL_FUNC) &_tiledb_libtiledb_array_create_with_key, 3},
     {"_tiledb_libtiledb_array_open", (DL_FUNC) &_tiledb_libtiledb_array_open, 3},
     {"_tiledb_libtiledb_array_open_at", (DL_FUNC) &_tiledb_libtiledb_array_open_at, 4},
     {"_tiledb_libtiledb_array_open_with_key", (DL_FUNC) &_tiledb_libtiledb_array_open_with_key, 4},
@@ -2886,6 +3888,12 @@ static const R_CallMethodDef CallEntries[] = {
     {"_tiledb_libtiledb_array_open_timestamp_start", (DL_FUNC) &_tiledb_libtiledb_array_open_timestamp_start, 1},
     {"_tiledb_libtiledb_array_set_open_timestamp_end", (DL_FUNC) &_tiledb_libtiledb_array_set_open_timestamp_end, 2},
     {"_tiledb_libtiledb_array_open_timestamp_end", (DL_FUNC) &_tiledb_libtiledb_array_open_timestamp_end, 1},
+    {"_tiledb_libtiledb_array_delete_fragments", (DL_FUNC) &_tiledb_libtiledb_array_delete_fragments, 4},
+    {"_tiledb_libtiledb_array_delete_fragments_list", (DL_FUNC) &_tiledb_libtiledb_array_delete_fragments_list, 3},
+    {"_tiledb_libtiledb_array_has_enumeration", (DL_FUNC) &_tiledb_libtiledb_array_has_enumeration, 3},
+    {"_tiledb_libtiledb_array_get_enumeration", (DL_FUNC) &_tiledb_libtiledb_array_get_enumeration, 3},
+    {"_tiledb_libtiledb_array_has_enumeration_vector", (DL_FUNC) &_tiledb_libtiledb_array_has_enumeration_vector, 2},
+    {"_tiledb_libtiledb_array_upgrade_version", (DL_FUNC) &_tiledb_libtiledb_array_upgrade_version, 4},
     {"_tiledb_libtiledb_query", (DL_FUNC) &_tiledb_libtiledb_query, 3},
     {"_tiledb_libtiledb_query_type", (DL_FUNC) &_tiledb_libtiledb_query_type, 1},
     {"_tiledb_libtiledb_query_set_layout", (DL_FUNC) &_tiledb_libtiledb_query_set_layout, 2},
@@ -2894,9 +3902,9 @@ static const R_CallMethodDef CallEntries[] = {
     {"_tiledb_libtiledb_query_set_subarray", (DL_FUNC) &_tiledb_libtiledb_query_set_subarray, 2},
     {"_tiledb_libtiledb_query_set_buffer", (DL_FUNC) &_tiledb_libtiledb_query_set_buffer, 3},
     {"_tiledb_libtiledb_query_buffer_var_char_alloc_direct", (DL_FUNC) &_tiledb_libtiledb_query_buffer_var_char_alloc_direct, 4},
-    {"_tiledb_convertStringVectorIntoOffsetsAndString", (DL_FUNC) &_tiledb_convertStringVectorIntoOffsetsAndString, 2},
-    {"_tiledb_libtiledb_query_buffer_var_char_create", (DL_FUNC) &_tiledb_libtiledb_query_buffer_var_char_create, 2},
-    {"_tiledb_libtiledb_query_buffer_var_char_create_nullable", (DL_FUNC) &_tiledb_libtiledb_query_buffer_var_char_create_nullable, 4},
+    {"_tiledb_libtiledb_query_buffer_var_char_get_legacy_validity_value", (DL_FUNC) &_tiledb_libtiledb_query_buffer_var_char_get_legacy_validity_value, 2},
+    {"_tiledb_libtiledb_query_buffer_var_char_legacy_validity_mode", (DL_FUNC) &_tiledb_libtiledb_query_buffer_var_char_legacy_validity_mode, 3},
+    {"_tiledb_libtiledb_query_buffer_var_char_create", (DL_FUNC) &_tiledb_libtiledb_query_buffer_var_char_create, 3},
     {"_tiledb_libtiledb_query_set_buffer_var_char", (DL_FUNC) &_tiledb_libtiledb_query_set_buffer_var_char, 3},
     {"_tiledb_libtiledb_query_get_buffer_var_char", (DL_FUNC) &_tiledb_libtiledb_query_get_buffer_var_char, 3},
     {"_tiledb_libtiledb_query_get_buffer_var_char_simple", (DL_FUNC) &_tiledb_libtiledb_query_get_buffer_var_char_simple, 1},
@@ -2909,7 +3917,6 @@ static const R_CallMethodDef CallEntries[] = {
     {"_tiledb_length_from_vlcbuf", (DL_FUNC) &_tiledb_length_from_vlcbuf, 1},
     {"_tiledb_libtiledb_query_get_buffer_ptr", (DL_FUNC) &_tiledb_libtiledb_query_get_buffer_ptr, 2},
     {"_tiledb_libtiledb_query_submit", (DL_FUNC) &_tiledb_libtiledb_query_submit, 1},
-    {"_tiledb_libtiledb_query_submit_async", (DL_FUNC) &_tiledb_libtiledb_query_submit_async, 1},
     {"_tiledb_libtiledb_query_finalize", (DL_FUNC) &_tiledb_libtiledb_query_finalize, 1},
     {"_tiledb_libtiledb_query_status", (DL_FUNC) &_tiledb_libtiledb_query_status, 1},
     {"_tiledb_libtiledb_query_result_buffer_elements", (DL_FUNC) &_tiledb_libtiledb_query_result_buffer_elements, 3},
@@ -2917,8 +3924,10 @@ static const R_CallMethodDef CallEntries[] = {
     {"_tiledb_libtiledb_query_get_fragment_num", (DL_FUNC) &_tiledb_libtiledb_query_get_fragment_num, 1},
     {"_tiledb_libtiledb_query_get_fragment_uri", (DL_FUNC) &_tiledb_libtiledb_query_get_fragment_uri, 2},
     {"_tiledb_libtiledb_query_get_fragment_timestamp_range", (DL_FUNC) &_tiledb_libtiledb_query_get_fragment_timestamp_range, 2},
-    {"_tiledb_libtiledb_query_add_range", (DL_FUNC) &_tiledb_libtiledb_query_add_range, 5},
-    {"_tiledb_libtiledb_query_add_range_with_type", (DL_FUNC) &_tiledb_libtiledb_query_add_range_with_type, 6},
+    {"_tiledb_libtiledb_subarray", (DL_FUNC) &_tiledb_libtiledb_subarray, 1},
+    {"_tiledb_libtiledb_subarray_add_range", (DL_FUNC) &_tiledb_libtiledb_subarray_add_range, 5},
+    {"_tiledb_libtiledb_subarray_add_range_with_type", (DL_FUNC) &_tiledb_libtiledb_subarray_add_range_with_type, 6},
+    {"_tiledb_libtiledb_query_set_subarray_object", (DL_FUNC) &_tiledb_libtiledb_query_set_subarray_object, 2},
     {"_tiledb_libtiledb_query_get_est_result_size", (DL_FUNC) &_tiledb_libtiledb_query_get_est_result_size, 2},
     {"_tiledb_libtiledb_query_get_est_result_size_nullable", (DL_FUNC) &_tiledb_libtiledb_query_get_est_result_size_nullable, 2},
     {"_tiledb_libtiledb_query_get_est_result_size_var", (DL_FUNC) &_tiledb_libtiledb_query_get_est_result_size_var, 2},
@@ -2930,12 +3939,16 @@ static const R_CallMethodDef CallEntries[] = {
     {"_tiledb_libtiledb_query_get_array", (DL_FUNC) &_tiledb_libtiledb_query_get_array, 2},
     {"_tiledb_libtiledb_query_get_schema", (DL_FUNC) &_tiledb_libtiledb_query_get_schema, 2},
     {"_tiledb_libtiledb_query_stats", (DL_FUNC) &_tiledb_libtiledb_query_stats, 1},
+    {"_tiledb_libtiledb_query_get_ctx", (DL_FUNC) &_tiledb_libtiledb_query_get_ctx, 1},
+    {"_tiledb_libtiledb_query_apply_aggregate", (DL_FUNC) &_tiledb_libtiledb_query_apply_aggregate, 4},
     {"_tiledb_libtiledb_query_condition", (DL_FUNC) &_tiledb_libtiledb_query_condition, 1},
     {"_tiledb_libtiledb_query_condition_init", (DL_FUNC) &_tiledb_libtiledb_query_condition_init, 5},
     {"_tiledb_libtiledb_query_condition_combine", (DL_FUNC) &_tiledb_libtiledb_query_condition_combine, 3},
+    {"_tiledb_libtiledb_query_condition_set_use_enumeration", (DL_FUNC) &_tiledb_libtiledb_query_condition_set_use_enumeration, 3},
+    {"_tiledb_libtiledb_query_condition_create", (DL_FUNC) &_tiledb_libtiledb_query_condition_create, 4},
     {"_tiledb_libtiledb_zip_coords_numeric", (DL_FUNC) &_tiledb_libtiledb_zip_coords_numeric, 2},
     {"_tiledb_libtiledb_zip_coords_integer", (DL_FUNC) &_tiledb_libtiledb_zip_coords_integer, 2},
-    {"_tiledb_libtiledb_group_create", (DL_FUNC) &_tiledb_libtiledb_group_create, 2},
+    {"_tiledb_libtiledb_create_group", (DL_FUNC) &_tiledb_libtiledb_create_group, 2},
     {"_tiledb_libtiledb_object_type", (DL_FUNC) &_tiledb_libtiledb_object_type, 2},
     {"_tiledb_libtiledb_object_remove", (DL_FUNC) &_tiledb_libtiledb_object_remove, 2},
     {"_tiledb_libtiledb_object_move", (DL_FUNC) &_tiledb_libtiledb_object_move, 3},
@@ -2962,11 +3975,14 @@ static const R_CallMethodDef CallEntries[] = {
     {"_tiledb_libtiledb_vfs_sync", (DL_FUNC) &_tiledb_libtiledb_vfs_sync, 2},
     {"_tiledb_libtiledb_vfs_dir_size", (DL_FUNC) &_tiledb_libtiledb_vfs_dir_size, 2},
     {"_tiledb_libtiledb_vfs_ls", (DL_FUNC) &_tiledb_libtiledb_vfs_ls, 2},
+    {"_tiledb_libtiledb_vfs_copy_file", (DL_FUNC) &_tiledb_libtiledb_vfs_copy_file, 3},
+    {"_tiledb_libtiledb_vfs_fh_free", (DL_FUNC) &_tiledb_libtiledb_vfs_fh_free, 1},
+    {"_tiledb_libtiledb_vfs_ls_recursive", (DL_FUNC) &_tiledb_libtiledb_vfs_ls_recursive, 3},
     {"_tiledb_libtiledb_stats_enable", (DL_FUNC) &_tiledb_libtiledb_stats_enable, 0},
     {"_tiledb_libtiledb_stats_disable", (DL_FUNC) &_tiledb_libtiledb_stats_disable, 0},
     {"_tiledb_libtiledb_stats_reset", (DL_FUNC) &_tiledb_libtiledb_stats_reset, 0},
     {"_tiledb_libtiledb_stats_dump", (DL_FUNC) &_tiledb_libtiledb_stats_dump, 1},
-    {"_tiledb_libtiledb_stats_raw_dump", (DL_FUNC) &_tiledb_libtiledb_stats_raw_dump, 1},
+    {"_tiledb_libtiledb_stats_raw_dump", (DL_FUNC) &_tiledb_libtiledb_stats_raw_dump, 0},
     {"_tiledb_libtiledb_stats_raw_get", (DL_FUNC) &_tiledb_libtiledb_stats_raw_get, 0},
     {"_tiledb_libtiledb_fragment_info", (DL_FUNC) &_tiledb_libtiledb_fragment_info, 2},
     {"_tiledb_libtiledb_fragment_info_uri", (DL_FUNC) &_tiledb_libtiledb_fragment_info_uri, 2},
@@ -2987,10 +4003,54 @@ static const R_CallMethodDef CallEntries[] = {
     {"_tiledb_libtiledb_fragment_info_to_vacuum_uri", (DL_FUNC) &_tiledb_libtiledb_fragment_info_to_vacuum_uri, 2},
     {"_tiledb_libtiledb_fragment_info_dump", (DL_FUNC) &_tiledb_libtiledb_fragment_info_dump, 1},
     {"_tiledb_libtiledb_error_message", (DL_FUNC) &_tiledb_libtiledb_error_message, 1},
-    {"_tiledb_vecbuf_to_shmem", (DL_FUNC) &_tiledb_vecbuf_to_shmem, 4},
+    {"_tiledb_libtiledb_group", (DL_FUNC) &_tiledb_libtiledb_group, 3},
+    {"_tiledb_libtiledb_group_with_config", (DL_FUNC) &_tiledb_libtiledb_group_with_config, 4},
+    {"_tiledb_libtiledb_group_open", (DL_FUNC) &_tiledb_libtiledb_group_open, 2},
+    {"_tiledb_libtiledb_group_set_config", (DL_FUNC) &_tiledb_libtiledb_group_set_config, 2},
+    {"_tiledb_libtiledb_group_get_config", (DL_FUNC) &_tiledb_libtiledb_group_get_config, 1},
+    {"_tiledb_libtiledb_group_close", (DL_FUNC) &_tiledb_libtiledb_group_close, 1},
+    {"_tiledb_libtiledb_group_create", (DL_FUNC) &_tiledb_libtiledb_group_create, 2},
+    {"_tiledb_libtiledb_group_is_open", (DL_FUNC) &_tiledb_libtiledb_group_is_open, 1},
+    {"_tiledb_libtiledb_group_uri", (DL_FUNC) &_tiledb_libtiledb_group_uri, 1},
+    {"_tiledb_libtiledb_group_query_type", (DL_FUNC) &_tiledb_libtiledb_group_query_type, 1},
+    {"_tiledb_libtiledb_group_put_metadata", (DL_FUNC) &_tiledb_libtiledb_group_put_metadata, 3},
+    {"_tiledb_libtiledb_group_delete_metadata", (DL_FUNC) &_tiledb_libtiledb_group_delete_metadata, 2},
+    {"_tiledb_libtiledb_group_get_metadata", (DL_FUNC) &_tiledb_libtiledb_group_get_metadata, 2},
+    {"_tiledb_libtiledb_group_has_metadata", (DL_FUNC) &_tiledb_libtiledb_group_has_metadata, 2},
+    {"_tiledb_libtiledb_group_metadata_num", (DL_FUNC) &_tiledb_libtiledb_group_metadata_num, 1},
+    {"_tiledb_libtiledb_group_get_metadata_from_index", (DL_FUNC) &_tiledb_libtiledb_group_get_metadata_from_index, 2},
+    {"_tiledb_libtiledb_group_add_member", (DL_FUNC) &_tiledb_libtiledb_group_add_member, 4},
+    {"_tiledb_libtiledb_group_remove_member", (DL_FUNC) &_tiledb_libtiledb_group_remove_member, 2},
+    {"_tiledb_libtiledb_group_member_count", (DL_FUNC) &_tiledb_libtiledb_group_member_count, 1},
+    {"_tiledb_libtiledb_group_member", (DL_FUNC) &_tiledb_libtiledb_group_member, 2},
+    {"_tiledb_libtiledb_group_dump", (DL_FUNC) &_tiledb_libtiledb_group_dump, 2},
+    {"_tiledb_libtiledb_group_is_relative", (DL_FUNC) &_tiledb_libtiledb_group_is_relative, 2},
+    {"_tiledb_libtiledb_group_delete", (DL_FUNC) &_tiledb_libtiledb_group_delete, 3},
+    {"_tiledb_libtiledb_filestore_schema_create", (DL_FUNC) &_tiledb_libtiledb_filestore_schema_create, 2},
+    {"_tiledb_libtiledb_filestore_uri_import", (DL_FUNC) &_tiledb_libtiledb_filestore_uri_import, 3},
+    {"_tiledb_libtiledb_filestore_uri_export", (DL_FUNC) &_tiledb_libtiledb_filestore_uri_export, 3},
+    {"_tiledb_libtiledb_filestore_buffer_import", (DL_FUNC) &_tiledb_libtiledb_filestore_buffer_import, 4},
+    {"_tiledb_libtiledb_filestore_buffer_export", (DL_FUNC) &_tiledb_libtiledb_filestore_buffer_export, 4},
+    {"_tiledb_libtiledb_filestore_size", (DL_FUNC) &_tiledb_libtiledb_filestore_size, 2},
+    {"_tiledb_libtiledb_mime_type_to_str", (DL_FUNC) &_tiledb_libtiledb_mime_type_to_str, 1},
+    {"_tiledb_libtiledb_mime_type_from_str", (DL_FUNC) &_tiledb_libtiledb_mime_type_from_str, 1},
+    {"_tiledb_libtiledb_ndrectangle_create", (DL_FUNC) &_tiledb_libtiledb_ndrectangle_create, 2},
+    {"_tiledb_libtiledb_ndrectangle_set_range", (DL_FUNC) &_tiledb_libtiledb_ndrectangle_set_range, 5},
+    {"_tiledb_libtiledb_ndrectangle_get_range", (DL_FUNC) &_tiledb_libtiledb_ndrectangle_get_range, 3},
+    {"_tiledb_libtiledb_ndrectangle_dim_num", (DL_FUNC) &_tiledb_libtiledb_ndrectangle_dim_num, 1},
+    {"_tiledb_libtiledb_ndrectangle_datatype", (DL_FUNC) &_tiledb_libtiledb_ndrectangle_datatype, 2},
+    {"_tiledb_libtiledb_ndrectangle_datatype_by_ind", (DL_FUNC) &_tiledb_libtiledb_ndrectangle_datatype_by_ind, 2},
+    {"_tiledb_libtiledb_current_domain_create", (DL_FUNC) &_tiledb_libtiledb_current_domain_create, 1},
+    {"_tiledb_libtiledb_current_domain_type", (DL_FUNC) &_tiledb_libtiledb_current_domain_type, 1},
+    {"_tiledb_libtiledb_current_domain_set_ndrectangle", (DL_FUNC) &_tiledb_libtiledb_current_domain_set_ndrectangle, 2},
+    {"_tiledb_libtiledb_current_domain_get_ndrectangle", (DL_FUNC) &_tiledb_libtiledb_current_domain_get_ndrectangle, 1},
+    {"_tiledb_libtiledb_current_domain_is_empty", (DL_FUNC) &_tiledb_libtiledb_current_domain_is_empty, 1},
+    {"_tiledb_vecbuf_to_shmem", (DL_FUNC) &_tiledb_vecbuf_to_shmem, 5},
     {"_tiledb_vlcbuf_to_shmem", (DL_FUNC) &_tiledb_vlcbuf_to_shmem, 4},
     {"_tiledb_querybuf_from_shmem", (DL_FUNC) &_tiledb_querybuf_from_shmem, 2},
     {"_tiledb_vlcbuf_from_shmem", (DL_FUNC) &_tiledb_vlcbuf_from_shmem, 2},
+    {"_tiledb_vfs_file", (DL_FUNC) &_tiledb_vfs_file, 3},
+    {"_tiledb_tldb_init_", (DL_FUNC) &_tiledb_tldb_init_, 1},
     {NULL, NULL, 0}
 };
 

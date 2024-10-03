@@ -1,6 +1,6 @@
 #  MIT License
 #
-#  Copyright (c) 2017-2021 TileDB Inc.
+#  Copyright (c) 2017-2024 TileDB Inc.
 #
 #  Permission is hereby granted, free of charge, to any person obtaining a copy
 #  of this software and associated documentation files (the "Software"), to deal
@@ -23,32 +23,34 @@
 
 #' An S4 class for a TileDB Array
 #'
-#' This class aims to eventually replace \code{\link{tiledb_dense}}
-#' and \code{\link{tiledb_sparse}} provided equivalent functionality
-#' based on refactored implementation utilising newer TileDB features.
+#' This class replaces the earlier (and now removed) \code{tiledb_dense}
+#' and \code{tiledb_sparse} and provides equivalent functionality
+#' based on a refactored implementation utilising newer TileDB features.
 #'
 #' @slot ctx A TileDB context object
 #' @slot uri A character despription with the array URI
 #' @slot is.sparse A logical value whether the array is sparse or not
-#' @slot as.data.frame A logical value
-#' @slot attrs A character vector to select particular column \sQuote{attributes}
+#' @slot attrs A character vector to select particular column \sQuote{attributes};
+#' default is an empty character vector implying \sQuote{all} columns, the special
+#' value \code{NA_character_} has the opposite effect and selects \sQuote{none}.
 #' @slot extended A logical value, defaults to \code{TRUE}, indicating whether index
 #' columns are returned as well.
 #' @slot selected_ranges An optional list with matrices where each matrix i
 #' describes the (min,max) pair of ranges for dimension i
+#' @slot selected_points An optional list with vectors where each vector i
+#' describes the selected points for dimension i
 #' @slot query_layout An optional character value
 #' @slot datetimes_as_int64 A logical value
 #' @slot encryption_key A character value
-#' @slot timestamp A POSIXct datetime variable (deprecated, use timestamp_start)
-#' @slot as.matrix A logical value
-#' @slot as.array A logical value
 #' @slot query_condition A Query Condition object
 #' @slot timestamp_start A POSIXct datetime variable for the inclusive interval start
 #' @slot timestamp_end A POSIXct datetime variable for the inclusive interval start
 #' @slot return_as A character value with the desired \code{tiledb_array} conversion,
 #' permitted values are \sQuote{asis} (default, returning a list of columns),
 #' \sQuote{array}, \sQuote{matrix},\sQuote{data.frame}, \sQuote{data.table}
-#' or \sQuote{tibble}; the latter two require the respective packages installed
+#' \sQuote{tibble}, \sQuote{arrow_table} or \sQuote{arrow} (where the last two are synomyms);
+#' note that \sQuote{data.table}, \sQuote{tibble} and \sQuote{arrow} require the respective
+#' packages to installed.
 #' @slot query_statistics A logical value, defaults to \sQuote{FALSE}; if \sQuote{TRUE} the
 #' query statistics are returned (as a JSON string) via the attribute
 #' \sQuote{query_statistics} of the return object.
@@ -57,27 +59,28 @@
 #' @slot dumpbuffers An optional character variable with a directory name (relative to
 #' \code{/dev/shm}) for writing out results buffers (for internal use / testing)
 #' @slot buffers An optional list with full pathnames of shared memory buffers to read data from
+#' @slot strings_as_factors An optional logical to convert character columns to factor type
+#' @slot keep_open An optional logical to not close after read or write
 #' @slot ptr External pointer to the underlying implementation
 #' @exportClass tiledb_array
 setClass("tiledb_array",
          slots = list(ctx = "tiledb_ctx",
                       uri = "character",
                       is.sparse = "logical",
-                      as.data.frame = "logical",
                       attrs = "character",
                       extended = "logical",
                       selected_ranges = "list",
+                      selected_points = "list",
                       query_layout = "character",
                       datetimes_as_int64 = "logical",
                       encryption_key = "character",
-                      timestamp = "POSIXct",
-                      as.matrix = "logical",
-                      as.array = "logical",
                       query_condition = "tiledb_query_condition",
                       timestamp_start = "POSIXct",
                       timestamp_end = "POSIXct",
                       return_as = "character",
                       query_statistics = "logical",
+                      strings_as_factors = "logical",
+                      keep_open = "logical",
                       sil = "list",
                       dumpbuffers = "character",
                       buffers = "list",
@@ -90,13 +93,15 @@ setClass("tiledb_array",
 #' @param uri uri path to the tiledb dense array
 #' @param query_type optionally loads the array in "READ" or "WRITE" only modes.
 #' @param is.sparse optional logical switch, defaults to "NA" letting array determine it
-#' @param as.data.frame optional logical switch, defaults to "FALSE"
 #' @param attrs optional character vector to select attributes, default is
-#' empty implying all are selected
+#' empty implying all are selected, the special value \code{NA_character_}
+#' has the opposite effect and implies no attributes are returned.
 #' @param extended optional logical switch selecting wide \sQuote{data.frame}
 #' format, defaults to \code{TRUE}
 #' @param selected_ranges optional A list with matrices where each matrix i
-#' describes the (min,max) pair of ranges for dimension i
+#' describes the (min,max) pair of ranges selected for dimension i
+#' @param selected_points optional A list with vectors where each vector i
+#' describes the points selected in dimension i
 #' @param query_layout optional A value for the TileDB query layout, defaults to
 #' an empty character variable indicating no special layout is set
 #' @param datetimes_as_int64 optional A logical value selecting date and datetime value
@@ -104,12 +109,6 @@ setClass("tiledb_array",
 #' \code{POSIXct} or \code{nanotime} objects.
 #' @param encryption_key optional A character value with an AES-256 encryption key
 #' in case the array was written with encryption.
-#' @param timestamp optional A POSIXct Datetime value determining where in time the array is
-#' to be openened. Deprecated, use \sQuote{timestamp_start} instead
-#' @param as.matrix optional logical switch, defaults to "FALSE"; currently limited to dense
-#' matrices; in the case of multiple attributes in query a list of matrices is returned
-#' @param as.array optional logical switch, defaults to "FALSE"; in the case of multiple
-#' attributes in query a list of arrays is returned
 #' @param query_condition optional \code{tiledb_query_condition} object, by default uninitialized
 #' without a condition; this functionality requires TileDB 2.3.0 or later
 #' @param timestamp_start optional A POSIXct Datetime value determining the inclusive time point
@@ -118,67 +117,69 @@ setClass("tiledb_array",
 #' until which the array is to be openened. No fragments written earlier later be considered.
 #' @param return_as optional A character value with the desired \code{tiledb_array} conversion,
 #' permitted values are \sQuote{asis} (default, returning a list of columns), \sQuote{array},
-#' \sQuote{matrix},\sQuote{data.frame}, \sQuote{data.table} or \sQuote{tibble}; the latter
-#' two require the respective packages installed. The existing \code{as.*} arguments take precedent
-#' over this.
+#' \sQuote{matrix},\sQuote{data.frame}, \sQuote{data.table}, \sQuote{tibble}, \sQuote{arrow_table},
+#' or \sQuote{arrow} (as an alias for \sQuote{arrow_table}; here \sQuote{data.table},
+#' \sQuote{tibble} and \sQuote{arrow} require the respective packages to be installed.
+#' The existing \code{as.*} arguments take precedent over this.
 #' @param query_statistics optional A logical value, defaults to \sQuote{FALSE}; if \sQuote{TRUE} the
 #' query statistics are returned (as a JSON string) via the attribute
 #' \sQuote{query_statistics} of the return object.
+#' @param strings_as_factors An optional logical to convert character columns to factor type; defaults
+#' to the value of \code{getOption("stringsAsFactors", FALSE)}.
+#' @param keep_open An optional logical to not close after read or write
 #' @param sil optional A list, by default empty to store schema information when query objects are
 #' parsed.
 #' @param dumpbuffers An optional character variable with a directory name (relative to
 #' \code{/dev/shm}) for writing out results buffers (for internal use / testing)
 #' @param buffers An optional list with full pathnames of shared memory buffers to read data from
 #' @param ctx optional tiledb_ctx
+#' @param as.data.frame An optional deprecated alternative to \code{return_as="data.frame"} which has
+#' been deprecated and removed, but is still used in one BioConductor package; this argument will be removed
+#' once the updated package has been released.
 #' @return tiledb_array object
+#' @importFrom spdl set_level
 #' @export
 tiledb_array <- function(uri,
                          query_type = c("READ", "WRITE"),
                          is.sparse = NA,
-                         as.data.frame = FALSE,
                          attrs = character(),
                          extended = TRUE,
                          selected_ranges = list(),
+                         selected_points = list(),
                          query_layout = character(),
                          datetimes_as_int64 = FALSE,
                          encryption_key = character(),
-                         timestamp = as.POSIXct(double(), origin="1970-01-01"),
-                         as.matrix = FALSE,
-                         as.array = FALSE,
                          query_condition = new("tiledb_query_condition"),
                          timestamp_start = as.POSIXct(double(), origin="1970-01-01"),
                          timestamp_end = as.POSIXct(double(), origin="1970-01-01"),
                          return_as = get_return_as_preference(),
                          query_statistics = FALSE,
+                         strings_as_factors = getOption("stringsAsFactors", FALSE),
+                         keep_open = FALSE,
                          sil = list(),
                          dumpbuffers = character(),
                          buffers = list(),
-                         ctx = tiledb_get_context()) {
-  stopifnot(`Argument 'ctx' must be a tiledb_ctx object` = is(ctx, "tiledb_ctx"),
-            `Argument 'uri' must be a string scalar` = !missing(uri) && is.scalar(uri, "character"),
-            `At most one argument of as.data.frame, as.matrix and as.array can be selected` = sum(as.data.frame, as.matrix, as.array) <= 1,
-            `Argument 'as.matrix' cannot be selected for sparse arrays` = !(isTRUE(is.sparse) && as.matrix))
+                         ctx = tiledb_get_context(),
+                         as.data.frame = FALSE) {
+  stopifnot("Argument 'ctx' must be a tiledb_ctx object" = is(ctx, "tiledb_ctx"),
+            "Argument 'uri' must be a string scalar" = !missing(uri) && is.scalar(uri, "character"),
+            "Argument 'matrix' (for 'return_as') cannot be selected for sparse arrays" =
+                !(isTRUE(is.sparse) && return_as == "matrix"))
   query_type <- match.arg(query_type)
-  if (sum(as.data.frame, as.matrix, as.array) == 1 && return_as != "asis")
-      return_as <- "asis"
+  spdl::debug("[tiledb_array] query is {}", query_type)
   if (length(encryption_key) > 0) {
-    if (!is.character(encryption_key))
-      stop("if used, argument aes_key must be character", call. = FALSE)
-    if (length(timestamp) > 0) {
-      array_xptr <- libtiledb_array_open_at_with_key(ctx@ptr, uri, query_type, encryption_key, timestamp)
-    } else {
-      array_xptr <- libtiledb_array_open_with_key(ctx@ptr, uri, query_type, encryption_key)
-    }
+    stopifnot("if used, argument aes_key must be character" = is.character(encryption_key))
+    array_xptr <- libtiledb_array_open_with_key(ctx@ptr, uri, query_type, encryption_key)
   } else {
-    if (length(timestamp) > 0) {
-      array_xptr <- libtiledb_array_open_at(ctx@ptr, uri, query_type, timestamp)
-    } else {
-      array_xptr <- libtiledb_array_open(ctx@ptr, uri, query_type)
-    }
+    array_xptr <- libtiledb_array_open(ctx@ptr, uri, query_type)
   }
 
-  if (length(timestamp) > 0)
-      .Deprecated(msg="Use 'timestamp_start' (and maybe 'timestamp_end') instead of 'timestamp'.")
+  if (as.data.frame) {
+      ## accommodating TileDBArray prior to BioConductor 3.20
+      .Deprecated(old="as.data.frame", new=r"(return_as="data.frame")")
+      return_as <- "data.frame"
+  }
+
   if (length(timestamp_start) > 0) {
       libtiledb_array_set_open_timestamp_start(array_xptr, timestamp_start)
   }
@@ -197,26 +198,25 @@ tiledb_array <- function(uri,
     }
   }
   is.sparse <- is_sparse_status
-  array_xptr <- libtiledb_array_close(array_xptr)
+  if (!keep_open) array_xptr <- libtiledb_array_close(array_xptr)
   new("tiledb_array",
       ctx = ctx,
       uri = uri,
       is.sparse = is.sparse,
-      as.data.frame = as.data.frame,
       attrs = attrs,
       extended = extended,
       selected_ranges = selected_ranges,
+      selected_points = selected_points,
       query_layout = query_layout,
       datetimes_as_int64 = datetimes_as_int64,
       encryption_key = encryption_key,
-      timestamp = timestamp,
-      as.matrix = as.matrix,
-      as.array = as.array,
       query_condition = query_condition,
       timestamp_start = timestamp_start,
       timestamp_end = timestamp_end,
       return_as = return_as,
       query_statistics = query_statistics,
+      strings_as_factors = strings_as_factors,
+      keep_open = keep_open,
       sil = sil,
       dumpbuffers = dumpbuffers,
       buffers = buffers,
@@ -237,7 +237,7 @@ setMethod("schema", "tiledb_array", function(object, ...) {
   }  else {
     schema_xptr <- libtiledb_array_schema_load(ctx@ptr, uri)
   }
-  return(tiledb_array_schema.from_ptr(schema_xptr))
+  return(tiledb_array_schema.from_ptr(schema_xptr, object@ptr))
 })
 
 ## unexported helper function to deal with ... args / enckey in next method
@@ -248,6 +248,13 @@ setMethod("schema", "tiledb_array", function(object, ...) {
     schema_xptr <- libtiledb_array_schema_load(ctxptr, uri)
   }
 }
+.array_open <- function(ctxptr, uri, enckey=character()) {
+    if (length(enckey) > 0) {
+        arr_xptr <- libtiledb_array_open_with_key(ctxptr, uri, "READ", enckey)
+    } else {
+        arr_xptr <- libtiledb_array_open(ctxptr, uri, "READ")
+    }
+}
 
 #' Return a schema from a URI character value
 #'
@@ -255,9 +262,10 @@ setMethod("schema", "tiledb_array", function(object, ...) {
 #' @param ... Extra parameters such as \sQuote{enckey}, the encryption key
 #' @return The scheme for the object
 setMethod("schema", "character", function(object, ...) {
-  ctx <- tiledb_get_context()
-  schema_xptr <- .array_schema_load(ctx@ptr, object, ...)
-  return(tiledb_array_schema.from_ptr(schema_xptr))
+    ctx <- tiledb_get_context()
+    schema_xptr <- .array_schema_load(ctx@ptr, object, ...)
+    array_xptr <- .array_open(ctx@ptr, object, ...)
+    return(tiledb_array_schema.from_ptr(schema_xptr, array_xptr))
 })
 
 
@@ -269,24 +277,25 @@ setMethod("show", signature = "tiledb_array",
           definition = function (object) {
   cat("tiledb_array\n"
      ,"  uri                = '", object@uri, "'\n"
+     ,"  schema_version     = ", tiledb_array_schema_version(schema(object)), "\n"
      ,"  is.sparse          = ", if (object@is.sparse) "TRUE" else "FALSE", "\n"
-     ,"  as.data.frame      = ", if (object@as.data.frame) "TRUE" else "FALSE", "\n"
      ,"  attrs              = ", if (length(object@attrs) == 0) "(none)"
                             else paste(object@attrs, collapse=","), "\n"
      ,"  selected_ranges    = ", if (length(object@selected_ranges) > 0) sprintf("(%d non-null sets)", sum(sapply(object@selected_ranges, function(x) !is.null(x))))
+                            else "(none)", "\n"
+     ,"  selected_points    = ", if (length(object@selected_points) > 0) sprintf("(%d non-null points)", sum(sapply(object@selected_points, function(x) !is.null(x))))
                             else "(none)", "\n"
      ,"  extended           = ", if (object@extended) "TRUE" else "FALSE" ,"\n"
      ,"  query_layout       = ", if (length(object@query_layout) == 0) "(none)" else object@query_layout, "\n"
      ,"  datetimes_as_int64 = ", if (object@datetimes_as_int64) "TRUE" else "FALSE", "\n"
      ,"  encryption_key     = ", if (length(object@encryption_key) == 0) "(none)" else "(set)", "\n"
-     ,"  timestamp          = ", if (length(object@timestamp) == 0) "(none)" else format(object@timestamp), "\n"
-     ,"  as.matrix          = ", if (object@as.matrix) "TRUE" else "FALSE", "\n"
-     ,"  as.array           = ", if (object@as.array) "TRUE" else "FALSE", "\n"
      ,"  query_condition    = ", if (isTRUE(object@query_condition@init)) "(set)" else "(none)", "\n"
      ,"  timestamp_start    = ", if (length(object@timestamp_start) == 0) "(none)" else format(object@timestamp_start), "\n"
      ,"  timestamp_end      = ", if (length(object@timestamp_end) == 0) "(none)" else format(object@timestamp_end), "\n"
      ,"  return_as          = '", object@return_as, "'\n"
      ,"  query_statistics   = ", if (object@query_statistics) "TRUE" else "FALSE", "\n"
+     ,"  strings_as_factors = ", if (object@strings_as_factors) "TRUE" else "FALSE", "\n"
+     ,"  keep_open          = ", if (object@keep_open) "TRUE" else "FALSE", "\n"
      ,sep="")
 })
 
@@ -307,11 +316,6 @@ setValidity("tiledb_array", function(object) {
   if (!is.logical(object@is.sparse)) {
     valid <- FALSE
     msg <- c(msg, "The 'is.sparse' slot does not contain a logical value.")
-  }
-
-  if (!is.logical(object@as.data.frame)) {
-    valid <- FALSE
-    msg <- c(msg, "The 'as.data.frame' slot does not contain a logical value.")
   }
 
   if (!is.character(object@attrs)) {
@@ -342,6 +346,20 @@ setValidity("tiledb_array", function(object) {
     }
   }
 
+  if (!is.list(object@selected_points)) {
+    valid <- FALSE
+    msg <- c(msg, "The 'selected_points' slot does not contain a list.")
+  } else {
+    for (i in (seq_len(length(object@selected_points)))) {
+      if (!is.null(object@selected_points[[i]])) {
+        if (!is.vector(object@selected_points[[i]]) && !inherits(object@selected_points[[i]], "integer64")) {
+          valid <- FALSE
+          msg <- c(msg, sprintf("Element '%d' of 'selected_ranges' is not a vector.", i))
+        }
+      }
+    }
+  }
+
   if (!is.character(object@query_layout)) {
     valid <- FALSE
     msg <- c(msg, "The 'query_layout' slot does not contain a character value.")
@@ -355,26 +373,6 @@ setValidity("tiledb_array", function(object) {
   if (!is.character(object@encryption_key)) {
     valid <- FALSE
     msg <- c(msg, "The 'encryption_key' slot does not contain a character vector.")
-  }
-
-  if (!inherits(object@timestamp, "POSIXct")) {
-    valid <- FALSE
-    msg <- c(msg, "The 'timestamp' slot does not contain a POSIXct value.")
-  }
-
-  if (!is.logical(object@as.matrix)) {
-    valid <- FALSE
-    msg <- c(msg, "The 'as.matrix' slot does not contain a logical value.")
-  }
-
-  if (!is.logical(object@as.array)) {
-    valid <- FALSE
-    msg <- c(msg, "The 'as.array' slot does not contain a logical value.")
-  }
-
-  if (sum(c(object@as.data.frame, object@as.matrix, object@as.array)) > 1) {
-    valid <- FALSE
-    msg <- c(msg, "At most one of 'as.data.frame', 'as.matrix', 'as.array' slots can be set to 'TRUE'.")
   }
 
   if (!is(object@query_condition, "tiledb_query_condition")) {
@@ -397,14 +395,26 @@ setValidity("tiledb_array", function(object) {
     msg <- c(msg, "The 'ptr' slot does not contain an external pointer.")
   }
 
-  if (!(object@return_as %in% c("asis", "array", "matrix", "data.frame", "data.table", "tibble"))) {
+  if (!(object@return_as %in% c("asis", "array", "matrix", "data.frame",
+                                "data.table", "tibble", "arrow_table", "arrow"))) {
     valid <- FALSE
-    msg <- c(msg, "The 'return_as' slot must contain one of 'asis', 'array', 'matrix', 'data.frame', 'data.table', 'tibble'.")
+    msg <- c(msg, paste("The 'return_as' slot must contain one of 'asis', 'array', 'matrix',",
+                        "'data.frame', 'data.table', 'tibble', 'arrow_table' or 'arrow'."))
   }
 
   if (!is.logical(object@query_statistics)) {
     valid <- FALSE
     msg <- c(msg, "The 'query_statistics' slot does not contain a logical value.")
+  }
+
+  if (!is.logical(object@strings_as_factors)) {
+    valid <- FALSE
+    msg <- c(msg, "The 'strings_as_factors' slot does not contain a logical value.")
+  }
+
+  if (!is.logical(object@keep_open)) {
+    valid <- FALSE
+    msg <- c(msg, "The 'keep_open' slot does not contain a logical value.")
   }
 
   if (valid) TRUE else msg
@@ -420,9 +430,9 @@ setValidity("tiledb_array", function(object) {
 ## as.numeric(as.Date("2021-01-01")) yields 18628.
 ##
 ## We also convert the value to integer64 because that is the internal storage format
-.mapDatetime2integer64 <- function(val, dtype) {
-    ## in case it is not a datetime type, or already an int64, return unchanged
-    if (!grepl("^DATETIME_", dtype) || inherits(val, "integer64"))
+.map2integer64 <- function(val, dtype) {
+    ## in case it is not a (datetime or (u)int64) type), or already an int64, return unchanged
+    if ((!grepl("^DATETIME_", dtype) && !grepl("INT64$", dtype)) || inherits(val, "integer64"))
         return(val)
 
     val <- switch(dtype,
@@ -438,10 +448,11 @@ setValidity("tiledb_array", function(object) {
                   "DATETIME_NS" = as.numeric(val),
                   "DATETIME_PS" = as.numeric(val) * 1e3,
                   "DATETIME_FS" = as.numeric(val) * 1e6,
-                  "DATETIME_AS" = as.numeric(val) * 1e9)
+                  "DATETIME_AS" = as.numeric(val) * 1e9,
+                  "UINT64"      = val,
+                  "INT64"       = val)
     bit64::as.integer64(val)
 }
-
 
 #' Returns a TileDB array, allowing for specific subset ranges.
 #'
@@ -460,6 +471,7 @@ setValidity("tiledb_array", function(object) {
 #' @param drop Optional logical switch to drop dimensions, default FALSE, currently unused.
 #' @return The resulting elements in the selected format
 #' @import nanotime
+#' @importFrom nanoarrow as_nanoarrow_array
 #' @aliases [,tiledb_array
 #' @aliases [,tiledb_array-method
 #' @aliases [,tiledb_array,ANY,tiledb_array-method
@@ -469,6 +481,19 @@ setMethod("[", "tiledb_array",
   ## add defaults
   if (missing(i)) i <- NULL
   if (missing(j)) j <- NULL
+  k <- NULL
+  #verbose <- getOption("verbose", FALSE)
+
+  spdl::trace("[tiledb_array] '[' accessor started")
+
+  ## deal with possible n-dim indexing
+  ndlist <- nd_index_from_syscall(sys.call(), parent.frame())
+  if (length(ndlist) >= 0) {
+    if (length(ndlist) >= 1 && !is.null(ndlist[[1]])) i <- ndlist[[1]]
+    if (length(ndlist) >= 2 && !is.null(ndlist[[2]])) j <- ndlist[[2]]
+    if (length(ndlist) >= 3 && !is.null(ndlist[[3]])) k <- ndlist[[3]]
+    if (length(ndlist) >= 4) message("Indices beyond the third dimension not supported in [i,j,k] form. Use selected_ranges() or selected_points().")
+  }
 
   ctx <- x@ctx
   uri <- x@uri
@@ -478,23 +503,47 @@ setMethod("[", "tiledb_array",
   layout <- x@query_layout
   asint64 <- x@datetimes_as_int64
   enckey <- x@encryption_key
-  tstamp <- x@timestamp
+  tstamp <- x@timestamp_end
 
   sparse <- libtiledb_array_schema_sparse(sch@ptr)
 
+  if (x@return_as == "arrow_table")
+    x@return_as <- "arrow" # normalize
+
+  if (x@return_as %in% c("data.table", "tibble", "arrow"))
+    if (!requireNamespace(x@return_as, quietly=TRUE))
+      stop("The 'return_as' argument value '", x@return_as, "' requires the package '",
+           x@return_as, "' to be installed.", call. = FALSE)
+
+  use_arrow <- x@return_as == "arrow"
+  if (use_arrow) {
+     suppressMessages(do.call(rawToChar(as.raw(c(0x72, 0x65, 0x71, 0x75, 0x69, 0x72, 0x65))), list("nanoarrow")))
+  }
+
   dims <- tiledb::dimensions(dom)
+  ndims <- length(dims)
   dimnames <- sapply(dims, function(d) libtiledb_dim_get_name(d@ptr))
   dimtypes <- sapply(dims, function(d) libtiledb_dim_get_datatype(d@ptr))
   dimvarnum <- sapply(dims, function(d) libtiledb_dim_get_cell_val_num(d@ptr))
   dimnullable <- sapply(dims, function(d) FALSE)
+  dimdictionary <- sapply(dims, function(d) FALSE)
 
   attrs <- tiledb::attrs(schema(x))
   attrnames <- unname(sapply(attrs, function(a) libtiledb_attribute_get_name(a@ptr)))
   attrtypes <- unname(sapply(attrs, function(a) libtiledb_attribute_get_type(a@ptr)))
   attrvarnum <- unname(sapply(attrs, function(a) libtiledb_attribute_get_cell_val_num(a@ptr)))
   attrnullable <- unname(sapply(attrs, function(a) libtiledb_attribute_get_nullable(a@ptr)))
+  attrdictionary <- unname(sapply(attrs, function(a) libtiledb_attribute_has_enumeration(ctx@ptr, a@ptr)))
 
-  if (length(sel) != 0) {
+  if (length(sel)==1 && is.na(sel[1])) {            # special case of NA selecting no attrs
+    attrnames <- character()
+    attrtypes <- character()
+    attrvarnum <- integer()
+    attrnullable <- logical()
+    attrdictionary <- logical()
+  }
+
+  if (length(sel) != 0 && !any(is.na(sel))) {
     ind <- match(sel, attrnames)
     if (length(ind) == 0) {
       stop("Only non-existing columns selected.", call.=FALSE)
@@ -503,6 +552,7 @@ setMethod("[", "tiledb_array",
     attrtypes <- attrtypes[ind]
     attrvarnum <- attrvarnum[ind]
     attrnullable <- attrnullable[ind]
+    attrdictionary <- attrdictionary[ind]
   }
 
   if (x@extended) {                     # if true return dimensions and attributes
@@ -510,48 +560,73 @@ setMethod("[", "tiledb_array",
       alltypes <- c(dimtypes, attrtypes)
       allvarnum <- c(dimvarnum, attrvarnum)
       allnullable <- c(dimnullable, attrnullable)
+      alldictionary <- c(dimdictionary, attrdictionary)
   } else {                              # otherwise only return attributes
       allnames <- attrnames
       alltypes <- attrtypes
       allvarnum <- attrvarnum
       allnullable <- attrnullable
+      alldictionary <- attrdictionary
   }
 
+  ## A preference can be set in a local per-user configuration file; if no value
+  ## is set a fallback from the TileDB config object is used.
+  memory_budget <- get_allocation_size_preference()
+  spdl::debug("['['] memory budget is {}", memory_budget)
+
   if (length(enckey) > 0) {
-    if (length(tstamp) > 0) {
-      arrptr <- libtiledb_array_open_at_with_key(ctx@ptr, uri, "READ", enckey, tstamp)
-    } else {
-      arrptr <- libtiledb_array_open_with_key(ctx@ptr, uri, "READ", enckey)
-    }
+    arrptr <- libtiledb_array_open_with_key(ctx@ptr, uri, "READ", enckey)
   } else {
-    if (length(tstamp) > 0) {
-      arrptr <- libtiledb_array_open_at(ctx@ptr, uri, "READ", tstamp)
-    } else {
-      arrptr <- libtiledb_array_open(ctx@ptr, uri, "READ")
-    }
+    arrptr <- libtiledb_array_open(ctx@ptr, uri, "READ")
   }
   if (length(x@timestamp_start) > 0) {
+      spdl::debug("['['] set open_timestamp_start to {}", x@timestamp_start)
       arrptr <- libtiledb_array_set_open_timestamp_start(arrptr, x@timestamp_start)
   }
   if (length(x@timestamp_end) > 0) {
+      spdl::debug("['['] set open_timestamp_end to {}", x@timestamp_end)
       arrptr <- libtiledb_array_set_open_timestamp_end(arrptr, x@timestamp_end)
   }
   if (length(x@timestamp_start) > 0 || length(x@timestamp_end) > 0) {
       arrptr <- libtiledb_array_reopen(arrptr)
   }
 
+  ## dictionaries are schema-level objects to fetch them now where we expect to have some
+  dictionaries <- vector(mode="list", length=length(allnames))
+  names(dictionaries) <- allnames
+  ordered_dict <- dictionaries
+  for (ii in seq_along(dictionaries)) {
+      if (isTRUE(alldictionary[ii])) {
+          attr <- attrs[[allnames[ii]]]
+          tpstr <- tiledb_attribute_get_enumeration_type_ptr(attr, arrptr)
+          if (tpstr %in% c("ASCII", "UTF8")) {
+              dictionaries[[ii]] <- tiledb_attribute_get_enumeration_ptr(attr, arrptr)
+          } else if (tpstr %in% c("FLOAT32", "FLOAT64", "BOOL",
+                                  "UINT8", "UINT16", "UINT32", "UINT64",
+                                  "INT8", "INT16", "INT32", "INT64")) {
+              dictionaries[[ii]] <- tiledb_attribute_get_enumeration_vector_ptr(attr, arrptr)
+          } else {
+              stop("Unsupported enumeration vector payload of type '%s'", tpstr, call. = FALSE)
+          }
+          ordered_dict[[ii]] <- tiledb_attribute_is_ordered_enumeration_ptr(attr, arrptr)
+          attr(dictionaries[[ii]], "ordered") <- ordered_dict[[ii]]
+      }
+  }
+
   ## helper function to sweep over names and types of domain
   getDomain <- function(nm, tp) {
-    if (tp %in% c("ASCII", "CHAR")) {
+    if (tp %in% c("ASCII", "CHAR", "UTF8")) {
       libtiledb_array_get_non_empty_domain_var_from_name(arrptr, nm)
     } else {
       libtiledb_array_get_non_empty_domain_from_name(arrptr, nm, tp)
     }
   }
   nonemptydom <- mapply(getDomain, dimnames, dimtypes, SIMPLIFY=FALSE)
+
   ## open query
   qryptr <- libtiledb_query(ctx@ptr, arrptr, "READ")
-  if (length(layout) > 0) libtiledb_query_set_layout(qryptr, layout)
+  qryptr <- libtiledb_query_set_layout(qryptr, if (isTRUE(nzchar(layout))) layout
+                                               else { if (sparse) "UNORDERED" else "COL_MAJOR" })
 
   ## ranges seem to interfere with the byte/element adjustment below so set up toggle
   rangeunset <- TRUE
@@ -561,6 +636,14 @@ setMethod("[", "tiledb_array",
       length(x@selected_ranges) != length(dimnames) &&
       is.null(names(x@selected_ranges))) {
       stop(paste0("If ranges are selected by index alone (and not named), ",
+                  "one is required for each dimension."), call. = FALSE)
+  }
+
+  ## ensure selected_points, if submitted, is of correct length
+  if (length(x@selected_points) != 0 &&
+      length(x@selected_points) != length(dimnames) &&
+      is.null(names(x@selected_points))) {
+      stop(paste0("If points are selected by index alone (and not named), ",
                   "one is required for each dimension."), call. = FALSE)
   }
 
@@ -576,6 +659,18 @@ setMethod("[", "tiledb_array",
       x@selected_ranges <- fulllist
   }
 
+  ## expand a shorter-but-named selected_points list
+  if (   (length(x@selected_points) < length(dimnames))
+      && (!is.null(names(x@selected_points)))          ) {
+      fulllist <- vector(mode="list", length=length(dimnames))
+      ind <- match(names(x@selected_points), dimnames)
+      if (any(is.na(ind))) stop("Name for selected points does not match dimension names.")
+      for (ii in seq_len(length(ind))) {
+          fulllist[[ ind[ii] ]] <- x@selected_points[[ii]]
+      }
+      x@selected_points <- fulllist
+  }
+
   ## selected_ranges may be in different order than dimnames, so reorder if need be
   if ((length(x@selected_ranges) == length(dimnames))
       && (!is.null(names(x@selected_ranges)))
@@ -583,9 +678,21 @@ setMethod("[", "tiledb_array",
       x@selected_ranges <- x@selected_ranges[dimnames]
   }
 
+  ## selected_points may be in different order than dimnames, so reorder if need be
+  if ((length(x@selected_points) == length(dimnames))
+      && (!is.null(names(x@selected_points)))
+      && (!identical(names(x@selected_points), dimnames))) {
+      x@selected_points <- x@selected_points[dimnames]
+  }
+
   ## if selected_ranges is still an empty list, make it an explicit one
   if (length(x@selected_ranges) == 0) {
       x@selected_ranges <- vector(mode="list", length=length(dimnames))
+  }
+
+  ## if selected_points is still an empty list, make it an explicit one
+  if (length(x@selected_points) == 0) {
+      x@selected_points <- vector(mode="list", length=length(dimnames))
   }
 
   if (!is.null(i)) {
@@ -596,36 +703,76 @@ setMethod("[", "tiledb_array",
   }
 
   if (!is.null(j)) {
+      if (ndims == 1) {
+          stop("Setting dimension 'j' requires at least two dimensions.", call. = FALSE)
+      }
       if (!is.null(x@selected_ranges[[2]])) {
           stop("Cannot set both 'j' and second element of 'selected_ranges'.", call. = FALSE)
       }
       x@selected_ranges[[2]] <- j
   }
 
+  if (!is.null(k)) {
+      if (ndims <= 2) {
+          stop("Setting dimension 'k' requires at least three dimensions.", call. = FALSE)
+      }
+      if (!is.null(x@selected_ranges[[3]])) {
+          stop("Cannot set both 'k' and second element of 'selected_ranges'.", call. = FALSE)
+      }
+      x@selected_ranges[[3]] <- k
+  }
+  ## (i,j,k) are now done and transferred to x@selected_ranges
+
+  ## pointer to subarray needed for iterated setting of points from selected_ranges
+  ## and selected_points across all possible dimensions
+  have_made_selection <- FALSE
+  sbrptr <- libtiledb_subarray(qryptr)
+
   ## if ranges selected, use those
   for (k in seq_len(length(x@selected_ranges))) {
-    if (is.null(x@selected_ranges[[k]])) {
-      #cat("Adding null dim", k, "on", dimtypes[[k]], "\n")
-      vec <- .mapDatetime2integer64(nonemptydom[[k]], dimtypes[k])
-      if (vec[1] != 0 && vec[2] != 0) { # corner case of A[] on empty array
-          qryptr <- libtiledb_query_add_range_with_type(qryptr, k-1, dimtypes[k], vec[1], vec[2])
+      if (is.null(x@selected_ranges[[k]]) && is.null(x@selected_points[[k]])) {
+          vec <- .map2integer64(nonemptydom[[k]], dimtypes[k])
+          if (vec[1] != 0 || vec[2] != 0) { # corner case of A[] on empty array
+              sbrptr <- libtiledb_subarray_add_range_with_type(sbrptr, k-1, dimtypes[k], vec[1], vec[2])
+              spdl::debug("[tiledb_array] Adding non-zero dim {}:{} on {} with ({},{})", k, i, dimtypes[k], vec[1], vec[2])
+              rangeunset <- FALSE
+              have_made_selection <- TRUE
+          }
+      } else if (is.null(nrow(x@selected_ranges[[k]])) && is.null(x@selected_points[[k]])) {
+          vec <- x@selected_ranges[[k]]
+          vec <- .map2integer64(vec, dimtypes[k])
+          sbrptr <- libtiledb_subarray_add_range_with_type(sbrptr, k-1, dimtypes[k], min(vec), max(vec))
+          spdl::debug("[tiledb_array] Adding non-zero dim {}:{} on {} with ({},{})", k, i, dimtypes[k], vec[1], vec[2])
           rangeunset <- FALSE
+          have_made_selection <- TRUE
+      } else if (is.null(x@selected_points[[k]])) {
+          m <- x@selected_ranges[[k]]
+          for (i in seq_len(nrow(m))) {
+              vec <- .map2integer64(c(m[i,1], m[i,2]), dimtypes[k])
+              sbrptr <- libtiledb_subarray_add_range_with_type(sbrptr, k-1, dimtypes[k], vec[1], vec[2])
+              spdl::debug("[tiledb_array] Adding non-zero dim {}:{} on {} with ({},{})", k, i, dimtypes[k], vec[1], vec[2])
+          }
+          rangeunset <- FALSE
+          have_made_selection <- TRUE
       }
-    } else if (is.null(nrow(x@selected_ranges[[k]]))) {
-      #cat("Adding nrow null dim", k, "on", dimtypes[[k]], "\n")
-      vec <- x@selected_ranges[[k]]
-      qryptr <- libtiledb_query_add_range_with_type(qryptr, k-1, dimtypes[k], min(vec), max(vec))
-      rangeunset <- FALSE
-    } else {
-      #cat("Adding non-zero dim", k, "on", dimtypes[[k]], "\n")
-      m <- x@selected_ranges[[k]]
-      for (i in seq_len(nrow(m))) {
-        vec <- .mapDatetime2integer64(c(m[i,1], m[i,2]), dimtypes[k])
-        qryptr <- libtiledb_query_add_range_with_type(qryptr, k-1, dimtypes[k], vec[1], vec[2])
-      }
-      rangeunset <- FALSE
-    }
   }
+
+  ## if points selected, use those (and fewer special cases as A[i,j,k] not folded into points)
+  for (k in seq_len(length(x@selected_points))) {
+      if (!is.null(x@selected_points[[k]])) {
+          m <- x@selected_points[[k]]
+          for (i in seq_along(m)) {
+              vec <- .map2integer64(c(m[i], m[i]), dimtypes[k])
+              sbrptr <- libtiledb_subarray_add_range_with_type(sbrptr, k-1, dimtypes[k], vec[1], vec[2])
+              spdl::debug("[tiledb_array] Adding point on non-zero dim {}:{} on {} with ({},{})", k, i, dimtypes[k], vec[1], vec[2])
+          }
+          rangeunset <- FALSE
+          have_made_selection <- TRUE
+      }
+  }
+
+  if (have_made_selection)
+      libtiledb_query_set_subarray_object(qryptr, sbrptr)
 
   buflist <- vector(mode="list", length=length(allnames))
 
@@ -647,15 +794,34 @@ setMethod("[", "tiledb_array",
       ## get results (shmem variant)
       getResultShmem <- function(buf, name, varnum) { #, resrv, qryptr) {
           if (is.na(varnum)) {
-              ##vec <- libtiledb_query_result_buffer_elements_vec(qryptr, name)
               vec <- length_from_vlcbuf(buf)
               libtiledb_query_get_buffer_var_char(buf, vec[1], vec[2])[,1]
           } else {
-              libtiledb_query_get_buffer_ptr(buf, asint64)
+              col <- libtiledb_query_get_buffer_ptr(buf, asint64)
+              if (!is.null(dictionaries[[name]])) { 	# if there is a dictionary
+                  dct <- dictionaries[[name]]           # access it from utility
+                  ord <- ordered_dict[[name]]
+                  ## the following expands out to a char vector first; we can do better
+                  ##   col <- factor(dct[col+1], levels=dct)
+                  ## so we do it "by hand"
+                  col <- col + 1L # adjust for zero-index C/C++ layer
+                  attr(col, "levels") <- dct
+                  attr(col, "class")  <- if (ord) c("ordered", "factor") else "factor"
+              }
+              col
           }
       }
       reslist <- mapply(getResultShmem, buflist, allnames, allvarnum, SIMPLIFY=FALSE)
-      ## convert list into data.frame (cheaply)
+      ind <- which(allvarnum != 1 & !is.na(allvarnum))
+      for (k in ind) {
+          ncells <- allvarnum[k]
+          v <- reslist[[k]]
+          ## we split a vector v into 'list-columns' which element containing
+          ## ncells value (and we get ncells from the Array schema)
+          ## see https://stackoverflow.com/a/9547594/143305 for I()
+          ## and https://stackoverflow.com/a/3321659/143305 for split()
+          reslist[[k]] <- I(unname(split(v, ceiling(seq_along(v)/ncells))))
+      }
       res <- data.frame(reslist)
       colnames(res) <- allnames
 
@@ -663,117 +829,254 @@ setMethod("[", "tiledb_array",
 
       ## retrieve est_result_size
       getEstimatedSize <- function(name, varnum, nullable, qryptr, datatype) {
-          if (is.na(varnum) && !nullable)
+          if (is.na(varnum) && !nullable) {
               res <- libtiledb_query_get_est_result_size_var(qryptr, name)[1]
-          else if (is.na(varnum) && nullable)
+              spdl::debug("[getEstimatedSize] column '{}' (is.na(varnum) and !nullable) {}", name, res)
+          } else if (is.na(varnum) && nullable) {
               res <- libtiledb_query_get_est_result_size_var_nullable(qryptr, name)[1]
-          else if (!is.na(varnum) && !nullable)
+              spdl::debug("[getEstimatedSize] column '{}' (is.na(varnum) and nullable) {}", name, res)
+          } else if (!is.na(varnum) && !nullable) {
               res <- libtiledb_query_get_est_result_size(qryptr, name)
-          else if (!is.na(varnum) && nullable)
+              spdl::debug("[getEstimatedSize] column '{}' (!is.na(varnum) and !nullable) {}", name, res)
+          } else if (!is.na(varnum) && nullable) {
               res <- libtiledb_query_get_est_result_size_nullable(qryptr, name)[1]
-          if (rangeunset && tiledb::tiledb_version(TRUE) >= "2.2.0") {
+              spdl::debug("[getEstimatedSize] column '{}' (!is.na(varnum) and nullable) {}", name, res)
+          }
+          if (rangeunset) {
               sz <- tiledb_datatype_string_to_sizeof(datatype)
               res <- res / sz
+              spdl::debug("[getEstimatedSize] column '{}' rangeunset and res scaled to {}", name, res)
           }
           res
       }
       ressizes <- mapply(getEstimatedSize, allnames, allvarnum, allnullable, alltypes,
                          MoreArgs=list(qryptr=qryptr), SIMPLIFY=TRUE)
-      resrv <- max(1, ressizes) # ensure >0 for correct handling of zero-length outputs
+      ## ensure > 0 for correct handling of zero-length outputs, ensure respecting memory budget
+      spdl::debug("['['] result of size estimates is {}", paste(ressizes, collapse=","))
+      resrv <- max(1, min(memory_budget/8, ressizes[ressizes > 0]))
+      spdl::debug("['['] overall estimate {} rows", resrv)
+
       ## allocate and set buffers
-      getBuffer <- function(name, type, varnum, nullable, resrv, qryptr, arrptr) {
-          if (is.na(varnum)) {
-              if (type %in% c("CHAR", "ASCII", "UTF8")) {
-                  buf <- libtiledb_query_buffer_var_char_alloc_direct(resrv, resrv*8, nullable)
-                  qryptr <- libtiledb_query_set_buffer_var_char(qryptr, name, buf)
-                  buf
+      if (!use_arrow) {
+          getBuffer <- function(name, type, varnum, nullable, resrv, qryptr, arrptr) {
+              if (is.na(varnum)) {
+                  if (type %in% c("CHAR", "ASCII", "UTF8")) {
+                      spdl::debug("[getBuffer] '{}' allocating 'char' {} rows given budget of {}", name, resrv, memory_budget)
+                      buf <- libtiledb_query_buffer_var_char_alloc_direct(resrv, memory_budget, nullable)
+                      buf <- libtiledb_query_buffer_var_char_legacy_validity_mode(ctx@ptr, buf)
+                      qryptr <- libtiledb_query_set_buffer_var_char(qryptr, name, buf)
+                      buf
+                  } else {
+                      message("Non-char var.num columns are not currently supported.")
+                  }
               } else {
-                  message("Non-char var.num columns are not currently supported.")
+                  spdl::debug("[getBuffer] '{}' allocating non-char {} rows given budget of {}", name, resrv, memory_budget)
+                  buf <- libtiledb_query_buffer_alloc_ptr(type, resrv, nullable, varnum)
+                  qryptr <- libtiledb_query_set_buffer_ptr(qryptr, name, buf)
+                  buf
               }
-          } else {
-              buf <- libtiledb_query_buffer_alloc_ptr(arrptr, type, resrv, nullable)
-              qryptr <- libtiledb_query_set_buffer_ptr(qryptr, name, buf)
-              buf
           }
+          buflist <- mapply(getBuffer, allnames, alltypes, allvarnum, allnullable,
+                            MoreArgs=list(resrv=resrv, qryptr=qryptr, arrptr=arrptr),
+                            SIMPLIFY=FALSE)
+          spdl::debug("['['] buffers allocated in list")
       }
-      buflist <- mapply(getBuffer, allnames, alltypes, allvarnum, allnullable,
-                        MoreArgs=list(resrv=resrv, qryptr=qryptr, arrptr=arrptr),
-                        SIMPLIFY=FALSE)
 
       ## if we have a query condition, apply it
       if (isTRUE(x@query_condition@init)) {
           qryptr <- libtiledb_query_set_condition(qryptr, x@query_condition@ptr)
       }
 
-      ## fire off query
-      qryptr <- libtiledb_query_submit(qryptr)
+      overallresults <- list()
+      counter <- 1L
+      finished <- FALSE
+      while (!finished) {
 
-      ## check status
-      status <- libtiledb_query_status(qryptr)
-      if (status != "COMPLETE") warning("Query returned '", status, "'.", call. = FALSE)
-
-      ## close array
-      libtiledb_array_close(arrptr)
-
-      ## retrieve actual result size (from fixed size element columns)
-      getResultSize <- function(name, varnum, qryptr) {
-          if (is.na(varnum))                  # symbols come up with higher count
-              libtiledb_query_result_buffer_elements(qryptr, name, 0)
-          else
-              libtiledb_query_result_buffer_elements(qryptr, name)
-      }
-      estsz <- mapply(getResultSize, allnames, allvarnum, MoreArgs=list(qryptr=qryptr), SIMPLIFY=TRUE)
-      if (any(!is.na(estsz))) {
-          resrv <- max(estsz, na.rm=TRUE)
-      } else {
-          resrv <- resrv/8                  # character case where bytesize of offset vector was used
-      }
-
-      ## get results
-      getResult <- function(buf, name, varnum, resrv, qryptr) {
-          has_dumpbuffers <- length(x@dumpbuffers) > 0
-          if (is.na(varnum)) {
-              vec <- libtiledb_query_result_buffer_elements_vec(qryptr, name)
-              if (has_dumpbuffers) {
-                  #cat("Name: ", name, " (", paste0(vec, collapse=","), ") ", sep="")
-                  vlcbuf_to_shmem(x@dumpbuffers, name, buf, vec)
-              }
-              ##print(vec)
-              libtiledb_query_get_buffer_var_char(buf, vec[1], vec[2])[,1]
-          } else {
-              if (has_dumpbuffers) {
-                  #cat("Name: ", name, " ", asint64, " ", resrv, " ", sep="")
-                  vecbuf_to_shmem(x@dumpbuffers, name, buf, resrv)
-              }
-              libtiledb_query_get_buffer_ptr(buf, asint64)
+          if (use_arrow) {
+              abptr <- libtiledb_allocate_column_buffers(ctx@ptr, qryptr, uri, allnames, memory_budget)
+              spdl::debug("['['] buffers allocated and set")
           }
+
+          ## fire off query
+          spdl::debug("['['] query submission: {} array_open {}", counter,
+                      if (libtiledb_array_is_open(arrptr)) "true" else "false")
+          qryptr <- libtiledb_query_submit(qryptr)
+
+          ## check status
+          status <- libtiledb_query_status(qryptr)
+          #if (status != "COMPLETE") warning("Query returned '", status, "'.", call. = FALSE)
+          if (status != "COMPLETE") spdl::debug("['['] query returned '{}'.", status)
+
+          if (use_arrow) {
+              ## rl <- libtiledb_to_arrow(abptr, qryptr, dictionaries)
+              ## at <- .as_arrow_table(rl)
+              na <- libtiledb_to_arrow(abptr, qryptr, dictionaries)
+              at <- arrow::as_arrow_table(na)
+
+              ## special case from schema evolution could have added twice so correcting
+              for (n in colnames(at)) {
+                  v <- at[[n]]$as_vector()
+                  lvls <- levels(v)
+                  if (inherits(v, "factor")) {
+                      vec <- as.integer(v)
+                      vec[vec == - .Machine$integer.max] <- NA_integer_
+                      if (min(vec, na.rm=TRUE) == 2 && max(vec, na.rm=TRUE) == length(lvls) + 1) {
+                          vec <- vec - 1L
+                          attr(vec, "levels") <- attr(v, "levels")
+                          class(vec) <- class(v)
+                          at[[n]] <- vec
+                      }
+                  }
+              }
+
+              ## if dictionaries are to be injected at the R level, this does it
+              #for (n in names(dictionaries)) {
+              #    if (!is.null(dictionaries[[n]])) {
+              #        at[[n]] <- arrow::DictionaryArray$create(at[[n]]$as_vector(), dictionaries[[n]])
+              #    }
+              #}
+              overallresults[[counter]] <- at
+              spdl::debug("['['] received arrow table {}", counter)
+          }
+
+          ## close array
+          if (status == "COMPLETE") {
+              if (!x@keep_open) libtiledb_array_close(arrptr)
+              .pkgenv[["query_status"]] <- status
+              finished <- TRUE
+          }
+
+          if (!use_arrow) {
+              ## retrieve actual result size (from fixed size element columns)
+              getResultSize <- function(name, varnum, qryptr) {
+                  val <- if (is.na(varnum))                  # symbols come up with higher count
+                             libtiledb_query_result_buffer_elements(qryptr, name, 0)
+                         else
+                             libtiledb_query_result_buffer_elements(qryptr, name)
+                  spdl::debug("[getResultSize] name {} varnum {} has {}", name, varnum, val)
+                  val
+              }
+              estsz <- mapply(getResultSize, allnames, allvarnum, MoreArgs=list(qryptr=qryptr), SIMPLIFY=TRUE)
+              spdl::debug("['['] estimated result sizes {}", paste(estsz, collapse=","))
+              if (any(!is.na(estsz))) {
+                  resrv <- max(estsz, na.rm=TRUE)
+              } else {
+                  resrv <- resrv/8              # character case where bytesize of offset vector was used
+              }
+              spdl::debug("['['] expected size {}", resrv)
+              ## Permit one pass to allow zero-row schema read
+              if (resrv == 0 && counter > 1L) {
+                  finished <- TRUE
+                  if (status != "COMPLETE") warning("Query returned '", status, "'.", call. = FALSE)
+                  .pkgenv[["query_status"]] <- status
+                  break
+              }
+              ## get results
+              getResult <- function(buf, name, varnum, estsz, qryptr) {
+                  has_dumpbuffers <- length(x@dumpbuffers) > 0
+                  ## message("For ", name, " seeing ", estsz, " and ", varnum)
+                  spdl::debug("[getResult] name {} estsz {} varnum {}", name, estsz, varnum)
+                  if (is.na(varnum)) {
+                      spdl::debug("[getResult] varnum before libtiledb_query_result_buffer_elements_vec");
+                      vec <- libtiledb_query_result_buffer_elements_vec(qryptr, name)
+                      if (has_dumpbuffers) {
+                          vlcbuf_to_shmem(x@dumpbuffers, name, buf, vec)
+                      }
+                      spdl::debug("[getResult] varnum before libtiledb_query_get_buffer_var_char");
+                      libtiledb_query_get_buffer_var_char(buf, vec[1], vec[2])[,1][seq_len(estsz)]
+                  } else {
+                      if (has_dumpbuffers) {
+                          vecbuf_to_shmem(x@dumpbuffers, name, buf, estsz, varnum)
+                      }
+                      libtiledb_query_get_buffer_ptr(buf, asint64)[seq_len(estsz)]
+                      spdl::debug("[getResult] calling libtiledb_query_get_buffer_ptr")
+                      col <- libtiledb_query_get_buffer_ptr(buf, asint64)[seq_len(estsz)]
+                      if (!is.null(dictionaries[[name]])) { 	# if there is a dictionary
+                          dct <- dictionaries[[name]]           # access it from utility
+                          ord <- ordered_dict[[name]]
+
+                          col <- col + 1L # adjust for zero-index C/C++ layer
+
+                          if (inherits(col, "integer64")) # can happen when Python writes
+                              col <- as.integer(col)
+
+                          ## special case from schema evolution could have added twice so correct
+                          if (length(col) > 0 && min(col, na.rm=TRUE) == 2 && max(col, na.rm=TRUE) == length(dct) + 1)
+                              col <- col - 1L
+
+                          if (inherits(dct, "character")) {
+                              attr(col, "levels") <- dct
+                              attr(col, "class")  <- if (ord) c("ordered", "factor") else "factor"
+                          } else {
+                              col <- dct[col]
+                          }
+                      }
+                      col
+                  }
+              }
+              spdl::debug("['['] getting results")
+              reslist <- mapply(getResult, buflist, allnames, allvarnum, estsz,
+                                MoreArgs=list(qryptr=qryptr), SIMPLIFY=FALSE)
+              spdl::debug("['['] got results")
+              ## convert list into data.frame (possibly dealing with list columns) and subset
+              vnum <- 1   # default value of variable number of elements per cell
+              if (is.list(allvarnum)) allvarnum <- unlist(allvarnum)
+              if (length(allvarnum) > 0 && any(!is.na(allvarnum))) vnum <- max(allvarnum, na.rm=TRUE)
+              if (is.finite(vnum) && (vnum > 1)) {
+                  ## turn to list col if a varnum != 1 (and not NA) seen
+                  ind <- which(allvarnum != 1 & !is.na(allvarnum))
+                  for (k in ind) {
+                      ncells <- allvarnum[k]
+                      v <- reslist[[k]]
+                      ## we split a vector v into 'list-columns' which element containing
+                      ## ncells value (and we get ncells from the Array schema)
+                      ## see https://stackoverflow.com/a/9547594/143305 for I()
+                      ## and https://stackoverflow.com/a/3321659/143305 for split()
+                      reslist[[k]] <- I(unname(split(v, ceiling(seq_along(v)/ncells))))
+                  }
+              }
+              ## the list columns are now all of equal lenthth as R needs and we can form a data.frame
+              res <- data.frame(reslist)[,,drop=FALSE]
+              colnames(res) <- allnames
+              overallresults[[counter]] <- res
+          }
+          spdl::debug("['['] completed {}", counter)
+          counter <- counter + 1L
       }
-      reslist <- mapply(getResult, buflist, allnames, allvarnum,
-                        MoreArgs=list(resrv=resrv, qryptr=qryptr), SIMPLIFY=FALSE)
-      ## convert list into data.frame (cheaply) and subset
-      res <- data.frame(reslist)[seq_len(resrv),,drop=FALSE]
-      colnames(res) <- allnames
+
+      if (!use_arrow && requireNamespace("data.table", quietly=TRUE)) { 		# use very efficient rbindlist if available
+          res <- as.data.frame(data.table::rbindlist(overallresults))
+      } else {
+          res <- do.call(rbind, overallresults)
+      }
+      spdl::debug("['['] returning 'res'")
+      res
   }                                     # end of 'big else' for query build, submission and read
 
-  ## reduce output if extended is false, or attrs given
-  if (!x@extended) {
-      if (length(sel) > 0) {
-          res <- res[, if (sparse) allnames else attrnames, drop=FALSE]
+  if (!use_arrow) {
+      ## convert to factor if that was asked
+      if (x@strings_as_factors) {
+          for (n in colnames(res))
+              if (is.character(res[[n]]))
+                  res[[n]] <- as.factor(res[[n]])
       }
-      k <- match("__tiledb_rows", colnames(res))
-      if (is.finite(k)) {
-          res <- res[, -k, drop=FALSE]
+
+      ## reduce output if extended is false, or attrs given
+      if (!x@extended) {
+          if (length(sel) > 0) {
+              res <- res[, if (sparse) allnames else attrnames, drop=FALSE]
+          }
+          k <- match("__tiledb_rows", colnames(res))
+          if (is.finite(k)) {
+              res <- res[, -k, drop=FALSE]
+          }
       }
   }
 
+  spdl::debug("['['] before preparing final data form")
   if (x@return_as == "asis") {
-      if (!x@as.data.frame && !x@as.matrix && !x@as.array) {
-          res <- as.list(res)
-      } else if (x@as.matrix) {
-          res <- .convertToMatrix(res)
-      } else if (x@as.array) {
-          res <- .convertToArray(dimnames, attrnames, res)
-      }
+      spdl::debug("['['] return asis")
+      res <- as.list(res)
   } else if (x@return_as == "array") {       	# if a conversion preference has been given, use it
       res <- .convertToArray(dimnames, attrnames, res)
   } else if (x@return_as == "matrix") {
@@ -781,15 +1084,20 @@ setMethod("[", "tiledb_array",
   } else if (x@return_as == "data.frame") {
       res <- as.data.frame(res)         		# should already be one per above
   } else if (x@return_as == "data.table" && requireNamespace("data.table", quietly=TRUE)) {
-      res <- data.table::data.table(as.data.frame(res))
+      res <- data.table::data.table(res)
   } else if (x@return_as == "tibble" && requireNamespace("tibble", quietly=TRUE)) {
       res <- tibble::as_tibble(res)
+  } else if (use_arrow) {
+      ## possible list already collapsed above
+      res
   }
 
+  spdl::debug("['['] getting query status")
   attr(res, "query_status") <- .pkgenv[["query_status"]]
   if (x@query_statistics)
       attr(res, "query_statistics") <- libtiledb_query_stats(qryptr)
 
+  spdl::debug("['['] returning result")
   invisible(res)
 })
 
@@ -808,6 +1116,15 @@ setMethod("[", "tiledb_array",
     }
     if (ncol(res) < 3) {
       stop("Seeing as.matrix argument with insufficient result set")
+    }
+    ## special case of integer64
+    if (inherits(res[,1], "integer64")) {
+        res[,1] <- as.integer(res[,1])
+        if (min(res[,1]) == 0) res[,1] <- res[,1] + 1
+    }
+    if (ncol(res) >= 3 && inherits(res[,2], "integer64")) {
+        res[,2] <- as.integer(res[,2])
+        if (min(res[,2]) == 0) res[,2] <- res[,2] + 1
     }
     if (!identical(unique(res[,1]), seq(1, length(unique(res[,1]))))) {
         cur <- unique(res[,1])
@@ -893,6 +1210,7 @@ setMethod("[<-", "tiledb_array",
   ## add defaults
   if (missing(i)) i <- NULL
   if (missing(j)) j <- NULL
+  spdl::debug("[tiledb_array] '[<-' accessor started")
 
   ctx <- x@ctx
   uri <- x@uri
@@ -902,7 +1220,7 @@ setMethod("[<-", "tiledb_array",
   layout <- x@query_layout
   asint64 <- x@datetimes_as_int64
   enckey <- x@encryption_key
-  tstamp <- x@timestamp
+  tstamp <- x@timestamp_end
 
   sparse <- libtiledb_array_schema_sparse(sch@ptr)
 
@@ -912,17 +1230,36 @@ setMethod("[<-", "tiledb_array",
   dimtypes <- sapply(dims, function(d) libtiledb_dim_get_datatype(d@ptr))
   dimvarnum <- sapply(dims, function(d) libtiledb_dim_get_cell_val_num(d@ptr))
   dimnullable <- sapply(dims, function(d) FALSE)
+  dimdictionary <- sapply(dims, function(d) FALSE)
 
   attrs <- tiledb::attrs(schema(x))
   attrnames <- unname(sapply(attrs, function(a) libtiledb_attribute_get_name(a@ptr)))
   attrtypes <- unname(sapply(attrs, function(a) libtiledb_attribute_get_type(a@ptr)))
   attrvarnum <- unname(sapply(attrs, function(a) libtiledb_attribute_get_cell_val_num(a@ptr)))
   attrnullable <- unname(sapply(attrs, function(a) libtiledb_attribute_get_nullable(a@ptr)))
+  attrdictionary <- unname(sapply(attrs, function(a) libtiledb_attribute_has_enumeration(ctx@ptr, a@ptr)))
 
-  allnames <- c(dimnames, attrnames)
-  alltypes <- c(dimtypes, attrtypes)
-  allvarnum <- c(dimvarnum, attrvarnum)
-  allnullable <- c(dimnullable, attrnullable)
+  if (length(attrnames) > 0) {
+      allnames <- c(dimnames, attrnames)
+      alltypes <- c(dimtypes, attrtypes)
+      allvarnum <- c(dimvarnum, attrvarnum)
+      allnullable <- c(dimnullable, attrnullable)
+      alldictionary <- c(dimdictionary, attrdictionary)
+  } else {
+      allnames <- dimnames
+      alltypes <- dimtypes
+      allvarnum <- dimvarnum
+      allnullable <- dimnullable
+      alldictionary <- dimdictionary
+  }
+
+  ## check we have complete columns (as we cannot write subset of attributes)
+  missing_names <- setdiff(attrnames, names(value))
+  if (sparse
+      && length(missing_names) > 0
+      && names(value)[1] != "value") { # special case of unnamed vector 'value' becoming one-col df
+      stop("Columns '", paste(missing_names, collapse=", "), "' are missing. Please add them", call. = FALSE)
+  }
 
   ## we will recognize two standard cases
   ##  1) arr[]    <- value    where value contains two columns with the dimnames
@@ -935,7 +1272,7 @@ setMethod("[<-", "tiledb_array",
       if (length(intersect(colnames(value), allnames)) == length(allnames)) {
           ## all good, proceed
           #message("Yay all columns found")
-          value <- value[, allnames]    # reordering helps with append case
+          value <- value[, allnames, drop=FALSE]    # reordering helps with append case
       } else {
           stop("Assigned data.frame does not contain all required attribute and dimension columns.")
       }
@@ -972,6 +1309,7 @@ setMethod("[<-", "tiledb_array",
       allnames <- attrnames
       alltypes <- attrtypes
       allnullable <- attrnullable
+      alldictionary <- attrdictionary
     }
 
   ## Case 4: dense, list on RHS e.g. the ex_1.R example
@@ -989,6 +1327,7 @@ setMethod("[<-", "tiledb_array",
     allnames <- attrnames
     alltypes <- attrtypes
     allnullable <- attrnullable
+    alldictionary <- attrdictionary
   }
 
   nc <- if (is.list(value)) length(value) else ncol(value)
@@ -1007,8 +1346,10 @@ setMethod("[<-", "tiledb_array",
         }
       } else {
         if (length(tstamp) > 0) {
+          spdl::debug("['[<-'] openning for WRITE at {}", tstamp)
           arrptr <- libtiledb_array_open_at(ctx@ptr, uri, "WRITE", tstamp)
         } else {
+          spdl::debug("['[<-'] openning for WRITE")
           arrptr <- libtiledb_array_open(ctx@ptr, uri, "WRITE")
         }
       }
@@ -1017,37 +1358,71 @@ setMethod("[<-", "tiledb_array",
 
     qryptr <- libtiledb_query(ctx@ptr, arrptr, "WRITE")
     qryptr <- libtiledb_query_set_layout(qryptr,
-                                         if (length(layout) > 0) layout
+                                         if (isTRUE(nchar(layout) > 0)) layout
                                          else { if (sparse) "UNORDERED" else "COL_MAJOR" })
 
     buflist <- vector(mode="list", length=nc)
+    legacy_validity <- libtiledb_query_buffer_var_char_get_legacy_validity_value(ctx@ptr)
 
     for (colnam in allnames) {
       ## when an index column is use this may be unordered to remap to position in 'nm' names
       k <- match(colnam, nm)
-      if (alltypes[k] %in% c("CHAR", "ASCII")) { # variable length
-          if (!allnullable[k]) {
-              txtvec <- as.character(value[[k]])
-              offsets <- c(0L, cumsum(nchar(txtvec[-length(txtvec)])))
-              data <- paste(txtvec, collapse="")
-              ##cat("Alloc char buffer", k, "for", colnam, ":", alltypes[k], "\n")
-              buflist[[k]] <- libtiledb_query_buffer_var_char_create(offsets, data)
-              qryptr <- libtiledb_query_set_buffer_var_char(qryptr, colnam, buflist[[k]])
-          } else { # variable length and nullable
-              txtvec <- as.character(value[[k]])
-              navec <- is.na(txtvec)
-              newvec <- txtvec
-              newvec[navec] <- ".."     # somehow we need two chars for NA as if we passed the char
-              offsets <- c(0L, cumsum(nchar(newvec[-length(newvec)])))
-              data <- paste(txtvec, collapse="")
-              buflist[[k]] <- libtiledb_query_buffer_var_char_create_nullable(offsets, data, allnullable[k], navec)
-              qryptr <- libtiledb_query_set_buffer_var_char(qryptr, colnam, buflist[[k]])
+
+      if (alldictionary[k]) {
+          spdl::trace("[tiledb_array] '[<-' column {} ({}) is factor", colnam, k)
+          new_levels <- levels(value[[k]])
+
+          attr <- attrs[[allnames[k]]]
+          tpstr <- tiledb_attribute_get_enumeration_type_ptr(attr, arrptr)
+          if (tpstr %in% c("ASCII", "UTF8")) {
+              dictionary <- tiledb_attribute_get_enumeration_ptr(attr, arrptr)
+          } else if (tpstr %in% c("FLOAT32", "FLOAT64", "BOOL", "UINT8", "UINT16", "UINT32", "UINT64",
+                                  "INT8", "INT16", "INT32", "INT64")) {
+              dictionary <- tiledb_attribute_get_enumeration_vector_ptr(attr, arrptr)
+          } else {
+              stop("Unsupported enumeration vector payload of type '", tpstr, "'.", call. = FALSE)
           }
+          added_enums <- setdiff(new_levels, dictionary)
+          if (length(added_enums) > 0) {
+              maxval <- tiledb_datatype_max_value(alltypes[k]) + 1 # R vectors are 1-indexed
+              spdl::debug("[tiledb_array] '[<-' Adding levels '{}' at '{}' {} ({} + {} ? {})",
+                          paste(added_enums, collapse=","), allnames[k], alltypes[k], length(dictionary), length(added_enums), maxval);
+              if (length(dictionary) + length(added_enums) > maxval) {
+                  stop(sprintf("For column '%s' cannot add %d factor levels to existing %d for type '%s' with maximum value %d",
+                               colnam, length(added_enums), length(dictionary), alltypes[k], maxval), call. = FALSE)
+              }
+              levels <- unique(c(dictionary, new_levels))
+              is_ordered <- tiledb_attribute_is_ordered_enumeration_ptr(attr, arrptr)
+              value[[k]] <- factor(value[[k]], levels = levels, ordered = is_ordered)
+              spdl::trace("[tiledb_array] '[<-' releveled column {} {}", k, is_ordered)
+              ase <- tiledb_array_schema_evolution()
+              if (!tiledb_array_is_open(x))
+                  arr <- tiledb_array_open(x)
+              else
+                  arr <- x
+              ase <- tiledb_array_schema_evolution_extend_enumeration(ase, arr, allnames[k], added_enums)
+              tiledb::tiledb_array_schema_evolution_array_evolve(ase, uri)
+              value[[k]] <- factor(value[[k]], levels = unique(c(dictionary, added_enums)), ordered=is.ordered(value[[k]]))
+          }
+      }
+
+      if (alltypes[k] %in% c("CHAR", "ASCII", "UTF8")) { # variable length
+        txtvec <- as.character(value[[k]])
+        spdl::debug("[tiledb_array] '[<-' alloc char buffer {} '{}': {}", k, colnam, alltypes[k])
+        buflist[[k]] <- libtiledb_query_buffer_var_char_create(txtvec, allnullable[k], legacy_validity)
+        qryptr <- libtiledb_query_set_buffer_var_char(qryptr, colnam, buflist[[k]])
       } else {
-        nr <- NROW(value[[k]])
-        #cat("Alloc buf", i, " ", colnam, ":", alltypes[i], "nr:", nr, "null:", allnullable[i], "asint64:", asint64, "\n")
-        buflist[[k]] <- libtiledb_query_buffer_alloc_ptr(arrptr, alltypes[k], nr, allnullable[k])
-        buflist[[k]] <- libtiledb_query_buffer_assign_ptr(buflist[[k]], alltypes[k], value[[k]], asint64)
+        col <- value[[k]]
+        if (is.list(col)) {
+            col <- unname(do.call(c, col))
+        }
+        if (is.factor(col)) {
+            col <- as.integer(col) - 1L 		# zero based in C++ so offsetting
+        }
+        nr <- NROW(col)
+        spdl::debug("[tiledb_array] '[<-' alloc buf {} '{}': {}, rows: {} null: {} asint64: {}", k, colnam, alltypes[k], nr, allnullable[k], asint64)
+        buflist[[k]] <- libtiledb_query_buffer_alloc_ptr(alltypes[k], nr, allnullable[k], allvarnum[k])
+        buflist[[k]] <- libtiledb_query_buffer_assign_ptr(buflist[[k]], alltypes[k], col, asint64)
         qryptr <- libtiledb_query_set_buffer_ptr(qryptr, colnam, buflist[[k]])
       }
     }
@@ -1060,7 +1435,7 @@ setMethod("[<-", "tiledb_array",
     }
 
     qryptr <- libtiledb_query_submit(qryptr)
-    libtiledb_array_close(arrptr)
+    if (!x@keep_open) libtiledb_array_close(arrptr)
 
   }
   invisible(x)
@@ -1110,7 +1485,7 @@ setReplaceMethod("return.data.frame",
 #' will be queried.  This methods accesses the slot.
 #' @param object A \code{tiledb_array} object
 #' @return An empty character vector if no attributes have been selected or else
-#' a vector with attributes.
+#' a vector with attributes; \code{NA} means no attributes will be returned.
 #' @importFrom methods validObject
 #' @export
 setMethod("attrs",
@@ -1120,14 +1495,17 @@ setMethod("attrs",
 #' Selects attributes for the given TileDB array
 #'
 #' @param x A \code{tiledb_array} object
-#' @param value A character vector with attributes
+#' @param value A character vector with attributes; the value \code{NA_character_}
+#' signals no attributes should be returned; default is an empty character vector
+#' implying all columns are returned.
 #' @return The modified \code{tiledb_array} object
 #' @export
 setReplaceMethod("attrs",
                  signature = "tiledb_array",
                  function(x, value) {
   nm <- names(attrs(schema(x)))
-  if (length(nm) == 0) {                # none set so far
+  value_is_na <- length(value) == 1 && is.na(value)  # no attribute query
+  if (length(nm) == 0 || value_is_na) {              # none set so far
     x@attrs <- value
   } else {
     pm <- pmatch(value, nm)
@@ -1228,6 +1606,47 @@ setReplaceMethod("selected_ranges", signature = "tiledb_array",
   x
 })
 
+## -- selected_points accessor
+
+#' @rdname selected_points-tiledb_array-method
+#' @export
+setGeneric("selected_points", function(object) standardGeneric("selected_points"))
+
+#' @rdname selected_points-set-tiledb_array-method
+#' @export
+setGeneric("selected_points<-", function(x, value) standardGeneric("selected_points<-"))
+
+#' Retrieve selected_points values for the array
+#'
+#' A \code{tiledb_array} object can have a range selection for each dimension
+#' attribute. This methods returns the selection value for \sQuote{selected_points}
+#' and returns a list (with one element per dimension) of vectors where
+#' each row describes one selected points. Alternatively, the list
+#' can be named with the names providing the match to the corresponding dimension.
+#' @param object A \code{tiledb_array} object
+#' @return A list which can contain a vector for each dimension
+#' @export
+setMethod("selected_points", signature = "tiledb_array",
+          function(object) object@selected_points)
+
+#' Set selected_points return values for the array
+#'
+#' A \code{tiledb_array} object can have a range selection for each dimension
+#' attribute. This methods sets the selection value for \sQuote{selected_points}
+#' which is a list (with one element per dimension) of two-column matrices where
+#' each row describes one pair of minimum and maximum values. Alternatively, the list
+#' can be named with the names providing the match to the corresponding dimension.
+#' @param x A \code{tiledb_array} object
+#' @param value A list of vectors where each list element \sQuote{i}
+#' corresponds to the dimension attribute \sQuote{i}.
+#' @return The modified \code{tiledb_array} array object
+#' @export
+setReplaceMethod("selected_points", signature = "tiledb_array",
+                 function(x, value) {
+  x@selected_points <- value
+  validObject(x)
+  x
+})
 
 
 ## -- query_layout accessor
@@ -1333,19 +1752,17 @@ array_consolidate <- function(uri, cfg = NULL,
                               ctx = tiledb_get_context()) {
     stopifnot(`Argument 'uri' must be character` = is.character(uri))
     if (is.null(cfg)) {
-        cfg <- tiledb_config()
+        cfg <- config(ctx)
     }
 
     if (!missing(start_time)) {
-        stopifnot(`Argument 'start_time' must be datetime object` = inherits(start_time, "POSIXt"),
-                  `TileDB 2.3.0 or later is required`  = tiledb_version(TRUE) >= "2.3.0")
+        stopifnot(`Argument 'start_time' must be datetime object` = inherits(start_time, "POSIXt"))
         start_time_int64 <- bit64::as.integer64(as.numeric(start_time) * 1000)
         cfg["sm.consolidation.timestamp_start"] = as.character(start_time_int64)
     }
 
     if (!missing(end_time)) {
-        stopifnot(`Argument 'end_time' must be datetime object`  = inherits(end_time, "POSIXt"),
-                  `TileDB 2.3.0 or later is required` = tiledb_version(TRUE) >= "2.3.0")
+        stopifnot(`Argument 'end_time' must be datetime object`  = inherits(end_time, "POSIXt"))
         end_time_int64 <- bit64::as.integer64(as.numeric(end_time) * 1000)
         cfg["sm.consolidation.timestamp_end"] = as.character(end_time_int64)
     }
@@ -1377,19 +1794,17 @@ array_vacuum <- function(uri, cfg = NULL,
 
     stopifnot(`Argument 'uri' must be character` = is.character(uri))
     if (is.null(cfg)) {
-        cfg <- tiledb_config()
+        cfg <- config(ctx)
     }
 
     if (!missing(start_time)) {
-        stopifnot(`Argument 'start_time' must be datetime object` = inherits(start_time, "POSIXt"),
-                  `TileDB 2.3.0 or later is required`  = tiledb_version(TRUE) >= "2.3.0")
+        stopifnot(`Argument 'start_time' must be datetime object` = inherits(start_time, "POSIXt"))
         start_time_int64 <- bit64::as.integer64(as.numeric(start_time) * 1000)
         cfg["sm.consolidation.timestamp_start"] = as.character(start_time_int64)
     }
 
     if (!missing(end_time)) {
-        stopifnot(`Argument 'end_time' must be datetime object` = inherits(end_time, "POSIXt"),
-                  `TileDB 2.3.0 or later is required` = tiledb_version(TRUE) >= "2.3.0")
+        stopifnot(`Argument 'end_time' must be datetime object` = inherits(end_time, "POSIXt"))
         end_time_int64 <- bit64::as.integer64(as.numeric(end_time) * 1000)
         cfg["sm.consolidation.timestamp_end"] = as.character(end_time_int64)
     }
@@ -1411,9 +1826,8 @@ array_vacuum <- function(uri, cfg = NULL,
 #' @export
 tiledb_array_get_non_empty_domain_from_index <- function(arr, idx) {
   stopifnot(`Argument 'arr' must be a tiledb_array` = is(arr, "tiledb_array"),
-            `Argument 'idx' must be numeric and positive` = is.numeric(idx) && idx > 0)
-  arr <- tiledb_array_close(arr)
-  arr <- tiledb_array_open(arr, "READ")
+            `Argument 'idx' must be numeric and positive` = is.numeric(idx) && idx > 0,
+            `Argument 'arr' must be open` = libtiledb_array_is_open(arr@ptr))
   sch <- schema(arr)
   dom <- domain(sch)
   dims <- dimensions(dom)
@@ -1439,7 +1853,8 @@ tiledb_array_get_non_empty_domain_from_index <- function(arr, idx) {
 #' @export
 tiledb_array_get_non_empty_domain_from_name <- function(arr, name) {
     stopifnot(`Argument 'arr' must be a tiledb_array` = is(arr, "tiledb_array"),
-              `Argument 'name' must be character` = is.character(name))
+              `Argument 'name' must be character` = is.character(name),
+              `Argument 'arr' must be open` = libtiledb_array_is_open(arr@ptr))
 
     sch <- schema(arr)
     dom <- domain(sch)
@@ -1658,8 +2073,46 @@ setReplaceMethod("query_statistics",
 })
 
 
-## piped query support
+## -- strings_as_factors getter/setter
 
+#' @rdname strings_as_factors-tiledb_array-method
+#' @export
+setGeneric("strings_as_factors", function(object) standardGeneric("strings_as_factors"))
+
+#' @rdname strings_as_factors-set-tiledb_array-method
+#' @export
+setGeneric("strings_as_factors<-", function(x, value) standardGeneric("strings_as_factors<-"))
+
+#' Retrieve strings_as_factors conversion toggle
+#'
+#' A \code{tiledb_array} object containing character column can have those converted to
+#' factors variables. This methods returns the selection value for \sQuote{strings_as_factors}.
+#' @param object A \code{tiledb_array} object
+#' @return A logical value indicating whether an \code{strings_as_factors} return is selected
+#' @export
+setMethod("strings_as_factors",
+          signature = "tiledb_array",
+          function(object) object@strings_as_factors)
+
+#' Set strings_as_factors return toggle
+#'
+#' A \code{tiledb_array} object containing character column can have those converted to
+#' factors variables. This methods sets the selection value for \sQuote{strings_as_factors}.
+#' @param x A \code{tiledb_array} object
+#' @param value A logical value with the selection
+#' @return The modified \code{tiledb_array} array object
+#' @export
+setReplaceMethod("strings_as_factors",
+                 signature = "tiledb_array",
+                 function(x, value) {
+  x@strings_as_factors <- value
+  validObject(x)
+  x
+})
+
+
+
+## piped query support
 
 #' @rdname generics
 #' @export
@@ -1734,9 +2187,37 @@ setMethod("tdb_collect", signature("tiledb_array"), function(x, ...) {
 })
 
 # unexported helper
-.fill_schema_info_list <- function(uri) {
-    sch <- schema(uri)
+.fill_schema_info_list <- function(ta) {
+    sch <- schema(ta)
     list(names=tiledb_schema_get_names(sch),
          types=tiledb_schema_get_types(sch),
-         status=tiledb_schema_get_dim_attr_status(sch))
+         status=tiledb_schema_get_dim_attr_status(sch),
+         enum=tiledb_schema_get_enumeration_status(sch))
+}
+
+
+## Entry points for tiledb_dense and tiledb_sparse
+
+#' @rdname tiledb_array
+#' @param ... Used as a pass-through for \code{tiledb_dense}
+#' and \code{tiledb_sparse} aliasing
+#' @export
+tiledb_dense <- function(...) {
+    if (isFALSE("tiledb_dense_called" %in% names(.pkgenv))) {
+        message("The 'tiledb_dense' function has been removed following a long deprecation. ",
+                "This call will be forwarded to 'tiledb_array(..., is.sparse=FALSE)'.")
+        .pkgenv[["tiledb_dense_called"]] <- TRUE 	# ensure we nag only once per session
+    }
+    tiledb_array(..., is.sparse = FALSE)
+}
+
+#' @rdname tiledb_array
+#' @export
+tiledb_sparse <- function(...) {
+    if (isFALSE("tiledb_sparse_called" %in% names(.pkgenv))) {
+        message("The 'tiledb_sparse' function has been removed following a long deprecation. ",
+                "This call will be forwarded to 'tiledb_array(..., is.sparse=TRUE)'.")
+        .pkgenv[["tiledb_sparse_called"]] <- TRUE 	# ensure we nag only once per session
+    }
+    tiledb_array(..., is.sparse = TRUE)
 }

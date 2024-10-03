@@ -4,24 +4,53 @@
 \alias{parse_query_condition}
 \title{Create a 'tiledb_query_condition' object from an expression}
 \usage{
-parse_query_condition(expr, ta = NULL, debug = FALSE, strict = TRUE)
+parse_query_condition(
+  expr,
+  ta = NULL,
+  debug = FALSE,
+  strict = TRUE,
+  use_int64 = FALSE
+)
 }
 \arguments{
-\item{expr}{An expression that is understood by the TileDB grammar for
-query conditions.}
+\item{expr}{An expression that is understood by the TileDB grammar for query conditions.}
 
-\item{ta}{An optional tiledb_array object that the query condition is applied to}
+\item{ta}{A tiledb_array object that the query condition is applied to; this argument is optional
+in some cases but required in some others.}
 
 \item{debug}{A boolean toogle to enable more verbose operations, defaults
 to 'FALSE'.}
 
 \item{strict}{A boolean toogle to, if set, errors if a non-existing attribute is selected
 or filtered on, defaults to 'TRUE'; if 'FALSE' a warning is shown by execution proceeds.}
+
+\item{use_int64}{A boolean toggle to switch to \code{integer64} if \code{integer} is seen,
+default is false to remain as a default four-byte \code{int}}
 }
 \value{
 A \code{tiledb_query_condition} object
 }
 \description{
-The grammar for query conditions is at present constraint to six operators
-and three boolean types.
+The grammar for query conditions is at present constraint to eight operators (\code{">"},
+\code{">="}, \code{"<"}, \code{"<="}, \code{"=="}, \code{"!="}, \code{"\%in\%"}, \code{"\%nin\%"}),
+and three boolean operators (\code{"&&"}, also as \code{"&"}, (\code{"||"}, also as \code{"|"},
+and \code{"!"} for negation.  Note that we locally define \code{"\%nin\%"} as \code{Negate()} call
+around \code{\%in\%)} which extends R a little for this use case.
+}
+\details{
+Expressions are parsed locally by this function. The \code{debug=TRUE} option may help if an issue
+has to be diagnosed. In most cases of an errroneous parse, it generally helps to supply the
+\code{tiledb_array} providing schema information. One example are numeric and integer columns where
+the data type is difficult to guess. Also, when using the \code{"\%in\%"} or \code{"\%nin\%"} operators,
+the argument is mandatory.
+}
+\examples{
+\dontshow{ctx <- tiledb_ctx(limitTileDBCores())}
+\dontrun{
+uri <- "mem://airquality"    # change to on-disk for persistence
+fromDataFrame(airquality, uri, col_index=c("Month", "Day"))  # dense array
+## query condition on dense array requires extended=FALSE
+tiledb_array(uri, return_as="data.frame", extended=FALSE,
+             query_condition=parse_query_condition(Temp > 90))[]
+}
 }

@@ -1,18 +1,33 @@
 CXX_STD = CXX17
 RWINLIB = ../windows/rwinlib-tiledb
 
-PKG_CPPFLAGS = -I../inst/include -I$(RWINLIB)/include -DTILEDB_STATIC_DEFINE
+PKG_CPPFLAGS = -I. -I../inst/include -I$(RWINLIB)/include -I$(RWINLIB)/include/tiledb -DTILEDB_STATIC_DEFINE -DTILEDB_SILENT_BUILD
 PKG_LIBS = \
 	-L$(RWINLIB)/lib$(subst gcc,,$(COMPILED_BY))$(R_ARCH) \
 	-L$(RWINLIB)/lib$(R_ARCH)$(CRT) \
-	-ltiledbstatic -lbz2 -lzstd -llz4 -lz -lspdlog \
-	-laws-cpp-sdk-identity-management -laws-cpp-sdk-cognito-identity -laws-cpp-sdk-sts -laws-cpp-sdk-s3 -laws-cpp-sdk-core -laws-c-event-stream -laws-checksums -laws-c-common \
-	-lShlwapi -lBcrypt -lRpcrt4 -lWininet -lWinhttp -lws2_32 -lVersion -lUserenv
+	-ltiledbstatic -lbz2 -lzstd -llz4 -lz -lspdlog -lfmt \
+	-laws-cpp-sdk-identity-management -laws-cpp-sdk-cognito-identity -laws-cpp-sdk-sts -laws-cpp-sdk-s3 -laws-cpp-sdk-core \
+	-llibmagic -lwebp -lpcre2-posix -lpcre2-8 \
+	-laws-crt-cpp -laws-c-mqtt -laws-c-event-stream -laws-c-s3 -laws-c-auth -laws-c-http -laws-c-io \
+	-lSecur32 -lCrypt32 \
+	-laws-c-compression -laws-c-cal \
+	-lNCrypt \
+	-laws-c-sdkutils -laws-checksums -laws-c-common \
+	-lBCrypt -lKernel32 -lRpcrt4 -lWininet -lWinhttp -lWs2_32 -lShlwapi -lUserenv -lversion -lws2_32 \
+	-lsharpyuv
 
-all: clean winlibs
+LIB_CON = ../inst/lib$(R_ARCH)/libconnection.dll
+
+all: winlibs $(OBJECTS) $(SHLIB) $(LIB_CON)
+
+$(LIB_CON): connection/connection.o
+	mkdir -p $(dir $(LIB_CON))
+	$(SHLIB_LINK) $(LIBR) -o $@ $^
 
 winlibs:
 	"$(R_HOME)/bin$(R_ARCH_BIN)/Rscript.exe" "../tools/winlibs.R"
 
 clean:
-	rm -f $(SHLIB) $(OBJECTS)
+	rm -f $(SHLIB) $(OBJECTS) $(LIB_CON) connection/connection.o
+
+.PHONY: all clean

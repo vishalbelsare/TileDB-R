@@ -1,19 +1,27 @@
 #!/bin/bash
 
+set -eu
+
+if [ $# -lt 1 ]; then
+    echo "Usage: buildTileDB.sh (default|url_to_tarball)"
+    echo "where 'default' leads to use of default version, which a given url can override"
+    exit 1
+fi
+url="${1}"
+
 if [ ! -d src ]; then
     echo "No src/ directory. Script should be invoked from top-level."
     exit 1
 fi
 
+## CRAN wants us permit different R binaries via different PATHs
+: ${R_HOME=`R RHOME`}
+
 cd src
 
 if [ ! -f tiledb.tar.gz ]; then
-    echo "Downloading ${url} as tiledb.tar.gz ..."
-    ## CRAN wants us permit different R binaries via different PATHs
-    if [ x"${R_HOME}" = x ]; then
-        R_HOME=`R RHOME`
-    fi
-    ${R_HOME}/bin/Rscript ../tools/fetchTileDBSrc.R
+    echo -n "Downloading ${url}: "
+    ${R_HOME}/bin/Rscript ../tools/fetchTileDBSrc.R ${url}
 fi
 
 if [ ! -d tiledb-src ]; then
@@ -38,18 +46,15 @@ fi
 ## Build
 mkdir build
 cd build
-../tiledb-src/bootstrap --force-build-all-deps --enable-serialization
-## NB: temporarily disabling and s3
-#../tiledb-src/bootstrap --force-build-all-deps
-make -j 2
-make -C tiledb install
+../tiledb-src/bootstrap --force-build-all-deps --enable-s3 --enable-serialization --linkage=shared
+make -j 2 tiledb install-tiledb
 cd ..
 
 ## Install
 mkdir -p ../inst/tiledb
-cp -ax tiledb-src/dist/* ../inst/tiledb/
+cp -ax build/dist/* ../inst/tiledb/
 mkdir -p ../tiledb
-cp -ax tiledb-src/dist/* ../tiledb/
+cp -ax build/dist/* ../tiledb/
 
 if [ ! -f .keep_build_dirs ]; then
     rm -rf build tiledb-src

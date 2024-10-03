@@ -16,7 +16,13 @@ fromDataFrame(
   capacity = 10000L,
   tile_domain = NULL,
   tile_extent = NULL,
-  debug = FALSE
+  mode = c("ingest", "schema_only", "append"),
+  filter_list = NULL,
+  coords_filters = "ZSTD",
+  offsets_filters = "ZSTD",
+  validity_filters = "RLE",
+  debug = FALSE,
+  timestamps = as.POSIXct(double(), origin = "1970-01-01")
 )
 }
 \arguments{
@@ -53,7 +59,27 @@ dimension of the \code{obj} is used.}
 if \code{NULL} the row dimension of the \code{obj} is used. Note that the \code{tile_extent}
 cannot exceed the tile domain.}
 
-\item{debug}{Logical flag to select additional output}
+\item{mode}{A character variable with possible values \sQuote{ingest} (for schema creation and
+data ingestion, the default behavior), \sQuote{schema_only} (to create the array schema without
+writing to the newly-created array) and \sQuote{append} (to only append to an already existing
+array).}
+
+\item{filter_list}{A named list specifying filter choices per column, default is an empty
+\code{list} object. This argument applies for all named arguments and the matchin dimensions
+or attributes. The \code{filter} argument still applies for all unnamed arguments.}
+
+\item{coords_filters}{A character vector with filters for coordinates, default is \code{ZSTD}.}
+
+\item{offsets_filters}{A character vector with filters for coordinates, default is \code{ZSTD}.}
+
+\item{validity_filters}{A character vector with filters for coordinates, default is \code{RLE}.}
+
+\item{debug}{Logical flag to select additional output.}
+
+\item{timestamps}{Vector with up to two \code{POSIXct} variables denoting open intervals; default
+is length zero where start and end are set (implicitly) to current time; in case of one value it
+is used as the interval end, and in case of two values they are taken as start and end. This
+applies to write and append modes only and not to schema creation.}
 }
 \value{
 Null, invisibly.
@@ -72,13 +98,10 @@ At present, factor variable are converted to character.
 }
 \examples{
 \dontshow{ctx <- tiledb_ctx(limitTileDBCores())}
-\dontrun{
 uri <- tempfile()
-## turn factor into character
-irisdf <- within(iris, Species <- as.character(Species))
-fromDataFrame(irisdf, uri)
-arr <- tiledb_array(uri, as.data.frame=TRUE, sparse=FALSE)
+fromDataFrame(iris, uri)
+arr <- tiledb_array(uri, return_as="data.frame", extended=FALSE)
 newdf <- arr[]
-all.equal(iris, newdf)
-}
+all.equal(iris, newdf, check.attributes=FALSE)  # extra attribute on query in newdf
+all.equal(as.matrix(iris), as.matrix(newdf))	# also strips attribute
 }

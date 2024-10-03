@@ -1,6 +1,6 @@
 //  MIT License
 //
-//  Copyright (c) 2017-2021 TileDB Inc.
+//  Copyright (c) 2017-2024 TileDB Inc.
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a copy
 //  of this software and associated documentation files (the "Software"), to deal
@@ -29,41 +29,41 @@
 #include "libtiledb.h"
 #include "tiledb_version.h"
 
-#include <fstream>
-#include <unistd.h>
-
 using namespace Rcpp;
 
+// Deprecated in Core April 2024, removed July 2024
 // [[Rcpp::export]]
-XPtr<tiledb::Query> libtiledb_query_set_coordinates(XPtr<tiledb::Query> query,
-                                                    SEXP coords,
-                                                    std::string dtype) {
-  //printf("In qsc %s\n", dtype.c_str());
-  if (dtype == "DATETIME_MS") {
-    IntegerVector sub(coords);
-    std::vector<int64_t> vec(sub.length());
-    for (int i=0; i<sub.length(); i++) {
-      vec[i] = sub[i];
-      //Rprintf("%d %d %ld %lu\n", sub[i], vec[i],
-      //        static_cast<int64_t>(sub[i]), static_cast<uint64_t>(sub[i]));
-    }
-    query->set_coordinates(vec.data(), vec.size());
+XPtr<tiledb::Query> libtiledb_query_submit_async(XPtr<tiledb::Query> query) {
+#if TILEDB_VERSION < TileDB_Version(2,26,0)
+    check_xptr_tag<tiledb::Query>(query);
+    spdl::trace("[libtiledb_query_submit_async]");
+    query->submit_async();
+#else
+    Rcpp::stop("This function was deprecated first, and is removed as of TileDB 2.26.0");
+#endif
     return query;
-  } else if (TYPEOF(coords) == INTSXP) {
-    IntegerVector sub(coords);
-    query->set_coordinates(sub.begin(), sub.length());
-    return query;
-  } else if (TYPEOF(coords) == REALSXP) {
-    NumericVector sub(coords);
-    query->set_coordinates(sub.begin(), sub.length());
-    return query;
-  } else {
-    Rcpp::stop("invalid subarray datatype");
-  }
 }
 
+// Helper for next function
+tiledb_encryption_type_t _string_to_tiledb_encryption_type_t(std::string encstr) {
+    tiledb_encryption_type_t enc;
+    int rc = tiledb_encryption_type_from_str(encstr.c_str(), &enc);
+    if (rc == TILEDB_OK)
+        return enc;
+    Rcpp::stop("Unknow TileDB encryption type '%s'", encstr.c_str());
+}
 
+// Deprecated in Core April 2024, removed July 2024
 // [[Rcpp::export]]
-std::string libtiledb_coords() {
-  return tiledb_coords();
+std::string libtiledb_array_create_with_key(std::string uri, XPtr<tiledb::ArraySchema> schema,
+                                            std::string encryption_key) {
+#if TILEDB_VERSION < TileDB_Version(2,26,0)
+    check_xptr_tag<tiledb::ArraySchema>(schema);
+    tiledb::Array::create(uri, *schema.get(),
+                          _string_to_tiledb_encryption_type_t("AES_256_GCM"),
+                          encryption_key);
+#else
+    Rcpp::stop("This function was deprecated first, and is removed as of TileDB 2.26.0");
+#endif
+    return uri;
 }

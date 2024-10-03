@@ -20,6 +20,15 @@ expect_error(tiledb_config(1))
 expect_error(tiledb_config(c(foo = 1)))
 #})
 
+## handle cases with NAs
+expect_silent(cfg <- tiledb_config(c(a = "1")))
+expect_equal(cfg["a"], c(a = "1"))
+expect_silent(cfg <- tiledb_config(c(a = "1", b = "2")))
+expect_equal(cfg["b"], c(b = "2"))
+expect_equal(head(names(as.vector(cfg)), 2L), c("a", "b"))
+expect_silent(cfg <- tiledb_config(c(a = "1", c = NA_character_, b = "2")))
+expect_equal(head(names(as.vector(cfg)), 2L), c("a", "b"))
+
 #test_that("tiledb_config indexing works", {
 cfg <- tiledb_config()
 cfg["foo"] <- "bar"
@@ -62,3 +71,7 @@ expect_equal(tiledb:::libtiledb_config_get(cfg@ptr, param)[[1]], newval)
 tiledb:::libtiledb_config_unset(cfg@ptr, param) # resets, not unsets
 expect_equal(tiledb:::libtiledb_config_get(cfg@ptr, param)[[1]], origval)
 #})
+
+
+if (tiledb_version(TRUE) < "2.17.0") exit_file("Remainder needs 2.17.* or later")
+expect_true(nzchar(tiledb_config_as_built_json()))  # only test for non-zero instead of parsing
